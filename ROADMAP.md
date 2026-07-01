@@ -27,81 +27,81 @@
 ---
 
 ## Этап 0 — Инициализация проекта
-- [ ] Создать проект: Vite + React + TypeScript.
-- [ ] Установить зависимости: tailwindcss (`@tailwindcss/vite`), shadcn/ui, lucide-react.
-- [ ] Установить: @reduxjs/toolkit, react-redux, axios, react-router-dom.
-- [ ] Установить: i18next, react-i18next, aos.
-- [ ] Настроить Tailwind + базовые дизайн-токены (цвета, шрифты).
-- [ ] Настроить alias (`@/`) в `vite.config.ts` и `tsconfig.json`.
-- [ ] Создать `.env` + `.env.example` (`VITE_API_URL=`), добавить `.env` в `.gitignore`.
-- [ ] Инициализировать git-репозиторий, первый commit.
+- [x] Создать проект: Vite + React + TypeScript.
+- [x] Установить зависимости: tailwindcss (`@tailwindcss/vite`), shadcn/ui, lucide-react.
+- [x] Установить: @reduxjs/toolkit, react-redux, axios, react-router-dom.
+- [x] Установить: i18next, react-i18next, aos.
+- [x] Настроить Tailwind + базовые дизайн-токены (цвета, шрифты).
+- [x] Настроить alias (`@/`) в `vite.config.ts` и `tsconfig.json`.
+- [x] Создать `.env` + `.env.example` (`VITE_API_URL=`), добавить `.env` в `.gitignore`.
+- [x] Инициализировать git-репозиторий, первый commit.
 
 ## Этап 1 — Базовая архитектура
-- [ ] Структура папок (app / components / features / pages / routes / lib / locales).
-- [ ] Настроить Redux store.
-- [ ] Создать axios instance (base URL из `import.meta.env.VITE_API_URL` + `/api/v1`).
-- [ ] Request interceptor (Bearer token).
-- [ ] Response interceptor (обработка 401 + refresh flow).
-- [ ] RTK Query baseQuery с авто-reauth.
-- [ ] Компоненты: Loading, ErrorBoundary, NotFound.
-- [ ] Настроить React Router + Suspense + lazy для страниц.
+- [x] Структура папок (app / components / features / pages / routes / lib / locales).
+- [x] Настроить Redux store.
+- [x] Создать axios instance (base URL из `import.meta.env.VITE_API_URL` + `/api/v1`).
+- [x] Request interceptor (Bearer token).
+- [x] Response interceptor (обработка 401 + refresh flow).
+- [x] RTK Query baseQuery с авто-reauth.
+- [x] Компоненты: Loading, ErrorBoundary, NotFound.
+- [x] Настроить React Router + Suspense + lazy для страниц.
 
 ## Этап 2 — Тема и локализация
-- [ ] ThemeProvider (dark/light) + переключатель + сохранение выбора.
-- [ ] Настроить i18next (ru / tj / en).
-- [ ] Файлы переводов `locales/ru.json`, `tj.json`, `en.json`.
-- [ ] Переключатель языка в UI.
-- [ ] Подключить и настроить AOS-анимации.
+- [x] ThemeProvider (dark/light) + переключатель + сохранение выбора.
+- [x] Настроить i18next (ru / tj / en).
+- [x] Файлы переводов `locales/ru.json`, `tj.json`, `en.json`.
+- [x] Переключатель языка в UI.
+- [x] Подключить и настроить AOS-анимации.
 
 ## Этап 3 — Авторизация
-- [ ] authApi (RTK Query): register, login, refresh, logout, me.
-- [ ] authSlice + AuthProvider (хранение user + токенов).
-- [ ] Страница Register.
-- [ ] Страница Login.
-- [ ] ProtectedRoute.
-- [ ] Логика авто-refresh токена (реализация reauth).
-- [ ] Logout.
+- [x] authApi (RTK Query): register, login, refresh, logout, me.
+- [x] authSlice + AuthProvider (хранение user + токенов).
+- [x] Страница Register.
+- [x] Страница Login.
+- [x] ProtectedRoute.
+- [x] Логика авто-refresh токена (реализация reauth).
+- [x] Logout.
 
 ## Этап 4 — Layout и навигация
-- [ ] Основной layout (Header + Sidebar).
-- [ ] Навигация с учётом воркспейса/проекта.
-- [ ] Профиль пользователя (GET/PATCH /auth/me).
-- [ ] Страница Settings (тема + язык).
+- [x] Основной layout (Header + Sidebar).
+- [x] Навигация с учётом воркспейса/проекта.
+- [x] Профиль пользователя (GET/PATCH /auth/me).
+- [x] Страница Settings (тема + язык).
 
 ## Этап 5 — Workspaces
-- [ ] workspacesApi (CRUD).
-- [ ] Страница выбора/списка воркспейсов.
-- [ ] Создание воркспейса.
-- [ ] Настройки воркспейса + управление участниками (роли owner/admin/member/guest).
+- [x] workspacesApi (CRUD).
+- [x] Страница выбора/списка воркспейсов.
+- [x] Создание воркспейса.
+- [x] Настройки воркспейса + управление участниками (роли owner/admin/member/guest).
 
 ## Этап 6 — Projects
-- [ ] projectsApi (CRUD).
-- [ ] Список проектов.
-- [ ] Создание проекта (name, identifier, description, lead).
-- [ ] Настройки проекта + участники (admin/member/viewer).
+- [x] projectsApi (CRUD).
+- [x] Список проектов.
+- [x] Создание проекта (name, identifier, description, lead).
+- [x] Настройки проекта + участники (admin/member/viewer).
 
 ## Этап 7 — States и Labels
-- [ ] statesApi (CRUD): цвет, группа, порядок, is_default.
-- [ ] labelsApi (CRUD): цвет.
-- [ ] UI управления статусами (в настройках проекта).
-- [ ] UI управления метками.
+- [x] statesApi (CRUD): цвет, группа, порядок, is_default.
+- [x] labelsApi (CRUD): цвет.
+- [x] UI управления статусами (в настройках проекта).
+- [x] UI управления метками.
 
 ## Этап 8 — Issues (задачи) — ядро
-- [ ] issuesApi: список с фильтрами (state, priority, assignee, label, search) + cursor-пагинация.
-- [ ] Board-вид по статусам (колонки-группы).
-- [ ] Создание задачи (title, state, priority, dates, estimate).
-- [ ] Детали задачи (Issue details page).
-- [ ] Редактирование задачи.
-- [ ] Soft-delete задачи.
-- [ ] Assignees: добавить / удалить.
-- [ ] Labels на задаче: прикрепить / открепить.
-- [ ] Подзадачи (parent_id).
-- [ ] Индикация приоритета и цвета статуса/меток.
+- [x] issuesApi: список с фильтрами (state, priority, assignee, label, search) + cursor-пагинация.
+- [x] Board-вид по статусам (колонки-группы).
+- [x] Создание задачи (title, state, priority, dates, estimate).
+- [x] Детали задачи (Issue details page).
+- [x] Редактирование задачи.
+- [x] Soft-delete задачи.
+- [x] Assignees: добавить / удалить.
+- [x] Labels на задаче: прикрепить / открепить.
+- [x] Подзадачи (parent_id).
+- [x] Индикация приоритета и цвета статуса/меток.
 
 ## Этап 9 — Comments
-- [ ] commentsApi: список / добавить / редактировать / удалить.
-- [ ] Отображение комментариев на странице задачи.
-- [ ] Threaded (вложенные) комментарии.
+- [x] commentsApi: список / добавить / редактировать / удалить.
+- [x] Отображение комментариев на странице задачи.
+- [x] Threaded (вложенные) комментарии.
 
 ## Этап 10 — Cycles (спринты)
 - [ ] cyclesApi (CRUD + issues).

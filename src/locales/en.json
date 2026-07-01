@@ -1,0 +1,192 @@
+{
+  "app": {
+    "name": "TaskFlow",
+    "tagline": "Task Management System"
+  },
+  "common": {
+    "loading": "Loading...",
+    "retry": "Try again",
+    "error": "Something went wrong",
+    "backHome": "Back home",
+    "getStarted": "Get started"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "submit": "Sign in",
+      "noAccount": "No account?",
+      "toRegister": "Sign up"
+    },
+    "register": {
+      "title": "Sign up",
+      "submit": "Create account",
+      "hasAccount": "Already have an account?",
+      "toLogin": "Sign in"
+    },
+    "fields": {
+      "email": "Email",
+      "password": "Password",
+      "displayName": "Name"
+    },
+    "logout": "Log out",
+    "errors": {
+      "generic": "Request failed. Check your details and try again."
+    },
+    "dashboard": {
+      "welcome": "Welcome"
+    }
+  },
+  "notFound": {
+    "title": "404",
+    "description": "Page not found"
+  },
+  "theme": {
+    "toggle": "Toggle theme"
+  },
+  "language": {
+    "label": "Language",
+    "ru": "Русский",
+    "tj": "Тоҷикӣ",
+    "en": "English"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "workspaces": "Workspaces",
+    "profile": "Profile",
+    "settings": "Settings"
+  },
+  "profile": {
+    "title": "Profile",
+    "avatarUrl": "Avatar URL",
+    "save": "Save",
+    "saved": "Saved"
+  },
+  "settings": {
+    "title": "Settings",
+    "theme": "Theme",
+    "language": "Language",
+    "themes": {
+      "light": "Light",
+      "dark": "Dark"
+    }
+  },
+  "workspaces": {
+    "title": "Workspaces",
+    "name": "Name",
+    "slug": "Identifier (slug)",
+    "create": "Create",
+    "save": "Save",
+    "delete": "Delete",
+    "empty": "No workspaces yet",
+    "notFound": "Workspace not found",
+    "members": {
+      "title": "Members",
+      "role": "Role",
+      "add": "Add",
+      "remove": "Remove",
+      "empty": "No members yet"
+    },
+    "roles": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "member": "Member",
+      "guest": "Guest"
+    }
+  },
+  "projects": {
+    "title": "Projects",
+    "name": "Name",
+    "identifier": "Identifier",
+    "description": "Description",
+    "lead": "Lead",
+    "noLead": "— None —",
+    "create": "Create",
+    "save": "Save",
+    "delete": "Delete",
+    "empty": "No projects yet",
+    "notFound": "Project not found",
+    "toSettings": "Workspace settings",
+    "members": {
+      "title": "Project members",
+      "role": "Role",
+      "add": "Add",
+      "remove": "Remove",
+      "empty": "No members yet"
+    },
+    "roles": {
+      "admin": "Admin",
+      "member": "Member",
+      "viewer": "Viewer"
+    }
+  },
+  "states": {
+    "title": "States",
+    "name": "Name",
+    "color": "Color",
+    "group": "Group",
+    "add": "Add",
+    "delete": "Delete",
+    "default": "Default",
+    "empty": "No states yet",
+    "groups": {
+      "backlog": "Backlog",
+      "unstarted": "Unstarted",
+      "started": "Started",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
+  },
+  "labels": {
+    "title": "Labels",
+    "name": "Name",
+    "color": "Color",
+    "add": "Add",
+    "delete": "Delete",
+    "empty": "No labels yet"
+  },
+  "issues": {
+    "title": "Issues",
+    "issueTitle": "Title",
+    "description": "Description",
+    "state": "State",
+    "priority": "Priority",
+    "dueDate": "Due date",
+    "estimate": "Estimate",
+    "create": "Create",
+    "save": "Save",
+    "delete": "Delete",
+    "search": "Search...",
+    "allPriorities": "All priorities",
+    "loadMore": "Load more",
+    "notFound": "Issue not found",
+    "assignees": "Assignees",
+    "assign": "Assign",
+    "unassign": "Unassign",
+    "attach": "Attach",
+    "detach": "Detach",
+    "subtasks": "Subtasks",
+    "subtaskTitle": "Subtask title",
+    "addSubtask": "Add",
+    "noSubtasks": "No subtasks yet",
+    "priorities": {
+      "none": "None",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "urgent": "Urgent"
+    }
+  },
+  "comments": {
+    "title": "Comments",
+    "add": "Send",
+    "placeholder": "Write a comment...",
+    "reply": "Reply",
+    "replyPlaceholder": "Your reply...",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "deleted": "Comment deleted",
+    "empty": "No comments yet"
+  }
+}

@@ -1,0 +1,70 @@
+import { lazy, Suspense } from 'react'
+import type { ComponentType } from 'react'
+import { createBrowserRouter } from 'react-router-dom'
+import { Loading } from '@/components/common/Loading'
+import { AppLayout } from '@/components/layout/AppLayout'
+import { ProtectedRoute } from '@/routes/ProtectedRoute'
+
+// Wrap a lazily-loaded page in Suspense with the global loading fallback.
+function withSuspense(Page: ComponentType) {
+  return (
+    <Suspense fallback={<Loading fullscreen />}>
+      <Page />
+    </Suspense>
+  )
+}
+
+const Home = lazy(() => import('@/pages/Home'))
+const Login = lazy(() => import('@/pages/Login'))
+const Register = lazy(() => import('@/pages/Register'))
+const Dashboard = lazy(() => import('@/pages/Dashboard'))
+const Workspaces = lazy(() => import('@/pages/Workspaces'))
+const WorkspaceSettings = lazy(() => import('@/pages/WorkspaceSettings'))
+const Projects = lazy(() => import('@/pages/Projects'))
+const ProjectBoard = lazy(() => import('@/pages/ProjectBoard'))
+const ProjectSettings = lazy(() => import('@/pages/ProjectSettings'))
+const IssueDetails = lazy(() => import('@/pages/IssueDetails'))
+const Profile = lazy(() => import('@/pages/Profile'))
+const Settings = lazy(() => import('@/pages/Settings'))
+const NotFound = lazy(() => import('@/pages/NotFound'))
+
+export const router = createBrowserRouter([
+  { path: '/', element: withSuspense(Home) },
+  { path: '/login', element: withSuspense(Login) },
+  { path: '/register', element: withSuspense(Register) },
+  {
+    element: <ProtectedRoute />,
+    children: [
+      {
+        element: <AppLayout />,
+        children: [
+          { path: '/dashboard', element: withSuspense(Dashboard) },
+          { path: '/workspaces', element: withSuspense(Workspaces) },
+          { path: '/profile', element: withSuspense(Profile) },
+          { path: '/settings', element: withSuspense(Settings) },
+          {
+            path: '/:workspaceSlug/settings',
+            element: withSuspense(WorkspaceSettings),
+          },
+          {
+            path: '/:workspaceSlug/projects',
+            element: withSuspense(Projects),
+          },
+          {
+            path: '/:workspaceSlug/projects/:projectId',
+            element: withSuspense(ProjectBoard),
+          },
+          {
+            path: '/:workspaceSlug/projects/:projectId/settings',
+            element: withSuspense(ProjectSettings),
+          },
+          {
+            path: '/:workspaceSlug/projects/:projectId/issues/:issueId',
+            element: withSuspense(IssueDetails),
+          },
+        ],
+      },
+    ],
+  },
+  { path: '*', element: withSuspense(NotFound) },
+])

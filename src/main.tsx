@@ -1,10 +1,29 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { Provider } from 'react-redux'
+import { RouterProvider } from 'react-router-dom'
+import AOS from 'aos'
+import 'aos/dist/aos.css'
 import './index.css'
-import App from './App.tsx'
+import '@/lib/i18n'
+import { store } from '@/app/store'
+import { router } from '@/routes/router'
+import { ThemeProvider } from '@/app/providers/ThemeProvider'
+import { AuthProvider } from '@/app/providers/AuthProvider'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+
+AOS.init({ duration: 600, once: true })
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <Provider store={store}>
+        <ThemeProvider>
+          <AuthProvider>
+            <RouterProvider router={router} />
+          </AuthProvider>
+        </ThemeProvider>
+      </Provider>
+    </ErrorBoundary>
   </StrictMode>,
 )
