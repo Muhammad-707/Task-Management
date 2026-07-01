@@ -188,5 +188,27 @@
     "delete": "Delete",
     "deleted": "Comment deleted",
     "empty": "No comments yet"
+  },
+  "cycles": {
+    "title": "Cycles",
+    "toBoard": "To board",
+    "name": "Name",
+    "start": "Start",
+    "end": "End",
+    "create": "Create",
+    "delete": "Delete",
+    "empty": "No cycles yet",
+    "notFound": "Cycle not found",
+    "progress": "Progress",
+    "issues": "Cycle issues",
+    "addIssue": "Add",
+    "removeIssue": "Remove",
+    "noIssues": "No issues in this cycle yet",
+    "issuesHint": "Progress reflects changes. The API does not expose a cycle's exact issue list.",
+    "statuses": {
+      "upcoming": "Upcoming",
+      "active": "Active",
+      "completed": "Completed"
+    }
   }
 }

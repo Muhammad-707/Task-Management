@@ -33,6 +33,7 @@ export interface GetIssuesArgs {
   search?: string
   state_id?: string
   parent_id?: string
+  cycle_id?: string
   cursor?: string
   limit?: number
 }

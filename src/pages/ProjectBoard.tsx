@@ -96,12 +96,20 @@ export default function ProjectBoard() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">{t('issues.title')}</h1>
-        <Link
-          to={`/${slug}/projects/${pid}/settings`}
-          className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-        >
-          {t('projects.toSettings')}
-        </Link>
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <Link
+            to={`/${slug}/projects/${pid}/cycles`}
+            className="underline-offset-4 hover:text-foreground hover:underline"
+          >
+            {t('cycles.title')}
+          </Link>
+          <Link
+            to={`/${slug}/projects/${pid}/settings`}
+            className="underline-offset-4 hover:text-foreground hover:underline"
+          >
+            {t('projects.toSettings')}
+          </Link>
+        </div>
       </div>
 
       <form

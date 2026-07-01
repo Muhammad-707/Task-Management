@@ -10,13 +10,14 @@ import type {
 export const issuesApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getIssues: builder.query<IssuesResponse, GetIssuesArgs>({
-      query: ({ workspaceSlug, projectId, search, state_id, parent_id, cursor, limit }) => ({
+      query: ({ workspaceSlug, projectId, search, state_id, parent_id, cycle_id, cursor, limit }) => ({
         url: `/workspaces/${workspaceSlug}/projects/${projectId}/issues`,
         method: 'GET',
         params: {
           search: search || undefined,
           state_id: state_id || undefined,
           parent_id: parent_id || undefined,
+          cycle_id: cycle_id || undefined,
           cursor: cursor || undefined,
           limit: limit || undefined,
         },
