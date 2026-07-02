@@ -37,6 +37,7 @@ export default function Landing() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
       <AmbientBackdrop />
+      <div aria-hidden className="grain" />
       <Nav />
       <Hero />
       <BentoFeatures />
@@ -55,15 +56,7 @@ function AmbientBackdrop() {
       <div className="absolute -left-40 top-0 h-[36rem] w-[36rem] rounded-full bg-primary/25 blur-[140px]" />
       <div className="absolute -right-32 top-[28rem] h-[32rem] w-[32rem] rounded-full bg-[oklch(0.6_0.22_200/0.22)] blur-[150px]" />
       <div className="absolute left-1/2 top-[80rem] h-[30rem] w-[30rem] -translate-x-1/2 rounded-full bg-[oklch(0.65_0.22_320/0.16)] blur-[130px]" />
-      <div
-        className="absolute inset-0 opacity-[0.035]"
-        style={{
-          backgroundImage:
-            'linear-gradient(oklch(1 0 0) 1px, transparent 1px), linear-gradient(90deg, oklch(1 0 0) 1px, transparent 1px)',
-          backgroundSize: '56px 56px',
-          maskImage: 'radial-gradient(ellipse at top, black 30%, transparent 80%)',
-        }}
-      />
+      <div className="ambient-grid absolute inset-0" />
     </div>
   )
 }
@@ -141,10 +134,8 @@ function Nav() {
   const ref = useClickOutside<HTMLElement>(open, () => setOpen(false))
 
   return (
-    <header
-      ref={ref}
-      className="fixed inset-x-0 top-0 z-50 border-b border-glass-border bg-background/70 backdrop-blur-xl"
-    >
+    <header ref={ref} className="glass-header fixed inset-x-0 top-0 z-50">
+
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <Link to="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary/20 ring-1 ring-primary/40">
@@ -196,7 +187,7 @@ function Nav() {
 
       {/* Mobile dropdown menu */}
       {open && (
-        <div className="border-t border-glass-border bg-background/95 backdrop-blur-xl md:hidden">
+        <div className="border-t border-glass-border bg-background/55 backdrop-blur-2xl backdrop-saturate-150 md:hidden">
           <div className="mx-auto max-w-7xl space-y-4 px-6 py-5">
             <nav className="flex flex-col gap-1 text-sm">
               {NAV_LINKS.map((l) => (
@@ -310,7 +301,7 @@ function Hero() {
             </Link>
             <a
               href="#features"
-              className="glass-card rounded-lg px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-white/5"
+              className="glass-card rounded-lg px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-foreground/5"
             >
               {t('landing.hero.explore')}
             </a>
@@ -399,7 +390,7 @@ function TiltAnalyticsCard() {
       >
         {/* Laser border */}
         <div aria-hidden className="pointer-events-none absolute inset-0 rounded-3xl">
-          <div className="absolute inset-0 rounded-3xl border border-white/10" />
+          <div className="absolute inset-0 rounded-3xl border border-foreground/10" />
           <div className="absolute -inset-px rounded-3xl bg-gradient-to-br from-primary/40 via-transparent to-[oklch(0.6_0.22_200/0.4)] opacity-60 blur-[6px]" />
         </div>
 
@@ -432,7 +423,7 @@ function TiltAnalyticsCard() {
             {metrics.map((m) => (
               <div
                 key={m.label}
-                className="rounded-xl border border-glass-border bg-white/[0.03] p-3"
+                className="rounded-xl border border-glass-border bg-foreground/[0.03] p-3"
                 style={{ transform: 'translateZ(20px)' }}
               >
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -449,7 +440,7 @@ function TiltAnalyticsCard() {
             {tasks.map((task) => (
               <div
                 key={task.title}
-                className="flex items-center justify-between rounded-lg border border-glass-border bg-white/[0.02] px-3 py-2 text-xs"
+                className="flex items-center justify-between rounded-lg border border-glass-border bg-foreground/[0.02] px-3 py-2 text-xs"
               >
                 <div className="flex items-center gap-2">
                   <span
@@ -641,7 +632,7 @@ function MiniBoard() {
   return (
     <div className="grid grid-cols-3 gap-2">
       {cols.map((c) => (
-        <div key={c.name} className="rounded-xl border border-glass-border bg-white/[0.02] p-3">
+        <div key={c.name} className="rounded-xl border border-glass-border bg-foreground/[0.02] p-3">
           <div className="mb-2 flex items-center justify-between text-[11px]">
             <span className="flex items-center gap-1.5 text-foreground">
               <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: c.tint }} />
@@ -653,7 +644,7 @@ function MiniBoard() {
             {c.items.map((it) => (
               <div
                 key={it}
-                className="rounded-md border border-glass-border bg-white/[0.03] px-2 py-1.5 text-[11px] text-foreground"
+                className="rounded-md border border-glass-border bg-foreground/[0.03] px-2 py-1.5 text-[11px] text-foreground"
               >
                 {it}
               </div>
@@ -718,7 +709,7 @@ function RelationsPreview() {
       {rows.map((r) => (
         <div
           key={r.tag}
-          className="flex items-center justify-between rounded-lg border border-glass-border bg-white/[0.02] px-2.5 py-2"
+          className="flex items-center justify-between rounded-lg border border-glass-border bg-foreground/[0.02] px-2.5 py-2"
         >
           <div className="flex items-center gap-2">
             <span
@@ -747,7 +738,7 @@ function CommentsPreview() {
       {rows.map((c) => (
         <div
           key={c.name}
-          className="flex items-start gap-2 rounded-lg border border-glass-border bg-white/[0.02] p-2.5"
+          className="flex items-start gap-2 rounded-lg border border-glass-border bg-foreground/[0.02] p-2.5"
         >
           <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary/25 text-[10px] font-semibold text-primary-foreground ring-1 ring-primary/40">
             {c.initials}
@@ -774,7 +765,7 @@ function NotificationsPreview() {
       {rows.map((n, i) => (
         <div
           key={i}
-          className="flex items-center gap-2 rounded-lg border border-glass-border bg-white/[0.02] px-2.5 py-2"
+          className="flex items-center gap-2 rounded-lg border border-glass-border bg-foreground/[0.02] px-2.5 py-2"
         >
           <n.icon className="h-3.5 w-3.5 text-primary" />
           <span className="text-foreground">{n.txt}</span>
@@ -1011,7 +1002,7 @@ function SiteFooter() {
               <a
                 key={i}
                 href="#"
-                className="grid h-9 w-9 place-items-center rounded-lg border border-glass-border bg-white/[0.03] text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground"
+                className="grid h-9 w-9 place-items-center rounded-lg border border-glass-border bg-foreground/[0.03] text-muted-foreground transition-colors hover:bg-foreground/[0.06] hover:text-foreground"
                 aria-label="Social link"
               >
                 <Icon className="h-4 w-4" />
