@@ -15,8 +15,9 @@ function withSuspense(Page: ComponentType) {
 }
 
 const Home = lazy(() => import('@/pages/Home'))
-const Login = lazy(() => import('@/pages/Login'))
-const Register = lazy(() => import('@/pages/Register'))
+// Login and Register render the SAME component so the split-screen panel/form can
+// animate between sides when switching auth modes (see src/pages/Auth.tsx).
+const Auth = lazy(() => import('@/pages/Auth'))
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const Workspaces = lazy(() => import('@/pages/Workspaces'))
 const WorkspaceSettings = lazy(() => import('@/pages/WorkspaceSettings'))
@@ -34,8 +35,8 @@ const NotFound = lazy(() => import('@/pages/NotFound'))
 
 export const router = createBrowserRouter([
   { path: '/', element: withSuspense(Home) },
-  { path: '/login', element: withSuspense(Login) },
-  { path: '/register', element: withSuspense(Register) },
+  { path: '/login', element: withSuspense(Auth) },
+  { path: '/register', element: withSuspense(Auth) },
   {
     element: <ProtectedRoute />,
     children: [

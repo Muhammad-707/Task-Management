@@ -34,7 +34,11 @@
     }
   },
   "landing": {
-    "nav": { "features": "Features", "how": "How it works", "pricing": "Pricing" },
+    "nav": {
+      "features": "Features",
+      "how": "How it works",
+      "pricing": "Pricing"
+    },
     "hero": {
       "badge": "Public beta · v1.0 launching Q3",
       "title1": "The agile OS",
@@ -42,7 +46,12 @@
       "subtitle": "Plane.app unifies boards, cycles, modules and analytics into one keyboard-first workspace — wrapped in a glassmorphic, dark-first UI you'll actually want to live in.",
       "startFree": "Start free",
       "explore": "Explore the platform",
-      "trust": ["SOC2 in progress", "Self-hostable", "GDPR ready", "99.98% uptime"]
+      "trust": [
+        "SOC2 in progress",
+        "Self-hostable",
+        "GDPR ready",
+        "99.98% uptime"
+      ]
     },
     "card": {
       "throughput": "Cycle throughput",
@@ -74,7 +83,11 @@
       "discussionsDesc": "Comment, mention and resolve — right next to the work. Edits are versioned, deletes are soft.",
       "signalTitle": "Signal, not noise",
       "signalDesc": "A single unified inbox for mentions, assignments and status changes across every workspace.",
-      "board": { "backlog": "Backlog", "inProgress": "In progress", "done": "Done" },
+      "board": {
+        "backlog": "Backlog",
+        "inProgress": "In progress",
+        "done": "Done"
+      },
       "relBlocks": "blocks",
       "relBlockedBy": "blocked by",
       "relRelatesTo": "relates to",
@@ -91,10 +104,22 @@
       "subtitle": "Four steps, one workspace — no ceremony required.",
       "step": "Step",
       "steps": [
-        { "title": "Model your work", "body": "Create workspaces per tenant, projects per product, and dynamic states per team. Everything is multi-tenant from day one." },
-        { "title": "Plan the cycle", "body": "Group issues into sprints and cross-cutting modules. Estimates, priorities and dependencies all live on the issue." },
-        { "title": "Execute in flow", "body": "The Kanban is dynamic — states, filters and views adapt. Keyboard shortcuts everywhere so hands stay on the keys." },
-        { "title": "Learn & ship faster", "body": "Burndown, throughput and workload — surfaced honestly. Analytics you'd actually plan a retro around." }
+        {
+          "title": "Model your work",
+          "body": "Create workspaces per tenant, projects per product, and dynamic states per team. Everything is multi-tenant from day one."
+        },
+        {
+          "title": "Plan the cycle",
+          "body": "Group issues into sprints and cross-cutting modules. Estimates, priorities and dependencies all live on the issue."
+        },
+        {
+          "title": "Execute in flow",
+          "body": "The Kanban is dynamic — states, filters and views adapt. Keyboard shortcuts everywhere so hands stay on the keys."
+        },
+        {
+          "title": "Learn & ship faster",
+          "body": "Burndown, throughput and workload — surfaced honestly. Analytics you'd actually plan a retro around."
+        }
       ]
     },
     "pricing": {
@@ -102,18 +127,83 @@
       "title": "Straightforward, per-seat pricing",
       "subtitle": "Start free. Upgrade when your team needs more room to move.",
       "popular": "Most popular",
-      "free": { "name": "Free", "period": "forever", "desc": "For individuals and prototypes. Everything you need to plan a small project.", "cta": "Start free", "features": ["1 workspace", "Up to 5 members", "Boards, cycles, modules", "Community support"] },
-      "team": { "name": "Team", "period": "per user / month", "desc": "For growing teams that need speed, analytics and unlimited workspaces.", "cta": "Start 14-day trial", "features": ["Unlimited workspaces", "Advanced analytics", "Custom states & workflows", "Priority email support"] },
-      "enterprise": { "name": "Enterprise", "period": "annual", "desc": "For organizations that need SSO, audit logs and a dedicated success manager.", "cta": "Talk to sales", "features": ["SAML SSO & SCIM", "Audit log & retention", "Self-host option", "24/7 support with SLA"] }
+      "free": {
+        "name": "Free",
+        "period": "forever",
+        "desc": "For individuals and prototypes. Everything you need to plan a small project.",
+        "cta": "Start free",
+        "features": [
+          "1 workspace",
+          "Up to 5 members",
+          "Boards, cycles, modules",
+          "Community support"
+        ]
+      },
+      "team": {
+        "name": "Team",
+        "period": "per user / month",
+        "desc": "For growing teams that need speed, analytics and unlimited workspaces.",
+        "cta": "Start 14-day trial",
+        "features": [
+          "Unlimited workspaces",
+          "Advanced analytics",
+          "Custom states & workflows",
+          "Priority email support"
+        ]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "period": "annual",
+        "desc": "For organizations that need SSO, audit logs and a dedicated success manager.",
+        "cta": "Talk to sales",
+        "features": [
+          "SAML SSO & SCIM",
+          "Audit log & retention",
+          "Self-host option",
+          "24/7 support with SLA"
+        ]
+      }
     },
     "footer": {
       "tagline": "The agile OS your team actually enjoys. Built with intent.",
       "copyright": "Plane.app — Built with intent.",
       "crafted": "Crafted for teams who care about the details.",
-      "product": { "title": "Product", "links": ["Features", "Pricing", "Changelog", "Roadmap"] },
-      "company": { "title": "Company", "links": ["About", "Careers", "Contact", "Press"] },
-      "resources": { "title": "Resources", "links": ["Docs", "Guides", "API", "Status"] },
-      "legal": { "title": "Legal", "links": ["Privacy", "Terms", "Security", "DPA"] }
+      "product": {
+        "title": "Product",
+        "links": [
+          "Features",
+          "Pricing",
+          "Changelog",
+          "Roadmap"
+        ]
+      },
+      "company": {
+        "title": "Company",
+        "links": [
+          "About",
+          "Careers",
+          "Contact",
+          "Press"
+        ]
+      },
+      "resources": {
+        "title": "Resources",
+        "links": [
+          "Docs",
+          "Guides",
+          "API",
+          "Status"
+        ]
+      },
+      "legal": {
+        "title": "Legal",
+        "links": [
+          "Privacy",
+          "Terms",
+          "Security",
+          "DPA"
+        ]
+      }
     }
   },
   "common": {
@@ -158,7 +248,12 @@
     "hidePassword": "Hide password",
     "logout": "Sign out",
     "errors": {
-      "generic": "Request failed. Check your details and try again."
+      "generic": "Request failed. Check your details and try again.",
+      "displayName": "Enter your display name.",
+      "email": "Enter a valid email address.",
+      "password": "Password must be at least 8 characters.",
+      "invalidCredentials": "Incorrect email or password.",
+      "emailTaken": "That email is already registered."
     },
     "dashboard": {
       "welcome": "Welcome",
@@ -172,6 +267,19 @@
         "completed": "Completed",
         "overdue": "Overdue"
       }
+    },
+    "panel": {
+      "title": "Ship work, not busywork.",
+      "subtitle": "Plan, track and deliver across every workspace from one calm, fast command center.",
+      "points": [
+        "Real-time boards & cycles",
+        "Modules, labels & relations",
+        "Secure JWT-backed workspaces"
+      ]
+    },
+    "toast": {
+      "loggedIn": "Signed in successfully.",
+      "registered": "Account created. Welcome aboard!"
     }
   },
   "notFound": {
