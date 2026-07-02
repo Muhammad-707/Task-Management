@@ -2,17 +2,18 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { ArrowRight, Building2, Plus } from 'lucide-react'
 import {
   useCreateWorkspaceMutation,
   useGetWorkspacesQuery,
 } from '@/features/workspaces/workspacesApi'
 import { SkeletonList } from '@/components/common/Skeleton'
+import { Button, Card, EmptyState, Field, Input } from '@/components/ui'
 
 export default function Workspaces() {
   const { t } = useTranslation()
   const { data: workspaces, isLoading } = useGetWorkspacesQuery()
-  const [createWorkspace, { isLoading: isCreating }] =
-    useCreateWorkspaceMutation()
+  const [createWorkspace, { isLoading: isCreating }] = useCreateWorkspaceMutation()
 
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
@@ -24,69 +25,50 @@ export default function Workspaces() {
       setName('')
       setSlug('')
     } catch {
-      // Errors surface through the list/query state.
+      // handled by global toast
     }
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
-      <h1 className="text-2xl font-bold">{t('workspaces.title')}</h1>
+    <div className="mx-auto max-w-3xl space-y-8">
+      <h1 className="text-2xl font-bold tracking-tight">{t('workspaces.title')}</h1>
 
-      <form
-        onSubmit={onCreate}
-        className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4"
-      >
-        <div className="flex-1 space-y-2">
-          <label htmlFor="ws-name" className="text-sm font-medium">
-            {t('workspaces.name')}
-          </label>
-          <input
-            id="ws-name"
-            required
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-          />
-        </div>
-        <div className="flex-1 space-y-2">
-          <label htmlFor="ws-slug" className="text-sm font-medium">
-            {t('workspaces.slug')}
-          </label>
-          <input
-            id="ws-slug"
-            required
-            value={slug}
-            onChange={(event) => setSlug(event.target.value)}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={isCreating}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
-        >
-          {t('workspaces.create')}
-        </button>
-      </form>
+      <Card className="p-6">
+        <form onSubmit={onCreate} className="flex flex-wrap items-end gap-3">
+          <Field label={t('workspaces.name')} htmlFor="ws-name" className="flex-1">
+            <Input id="ws-name" required value={name} onChange={(e) => setName(e.target.value)} />
+          </Field>
+          <Field label={t('workspaces.slug')} htmlFor="ws-slug" className="flex-1">
+            <Input id="ws-slug" required value={slug} onChange={(e) => setSlug(e.target.value)} />
+          </Field>
+          <Button type="submit" loading={isCreating} className="shrink-0">
+            <Plus className="h-4 w-4" />
+            {t('workspaces.create')}
+          </Button>
+        </form>
+      </Card>
 
       {isLoading ? (
         <SkeletonList />
       ) : Array.isArray(workspaces) && workspaces.length > 0 ? (
-        <ul className="space-y-2">
+        <div className="grid gap-3 sm:grid-cols-2">
           {workspaces.map((ws) => (
-            <li key={ws.id}>
-              <Link
-                to={`/${ws.slug}/projects`}
-                className="flex items-center justify-between rounded-lg border border-border p-4 transition-colors hover:bg-accent"
-              >
-                <span className="font-medium">{ws.name}</span>
-                <span className="text-sm text-muted-foreground">/{ws.slug}</span>
-              </Link>
-            </li>
+            <Link key={ws.id} to={`/${ws.slug}/projects`}>
+              <Card hover className="flex items-center gap-3 p-4">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-sm font-semibold text-white">
+                  {ws.name.slice(0, 2).toUpperCase()}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{ws.name}</p>
+                  <span className="text-xs text-muted-foreground">/{ws.slug}</span>
+                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+              </Card>
+            </Link>
           ))}
-        </ul>
+        </div>
       ) : (
-        <p className="text-muted-foreground">{t('workspaces.empty')}</p>
+        <EmptyState icon={Building2} title={t('workspaces.empty')} />
       )}
     </div>
   )

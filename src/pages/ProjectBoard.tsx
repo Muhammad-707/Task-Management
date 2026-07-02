@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { Layers, Plus, RefreshCw, Search, Settings, Tag, User } from 'lucide-react'
 import { useGetStatesQuery } from '@/features/states/statesApi'
 import {
   useCreateIssueMutation,
@@ -10,12 +11,8 @@ import {
 import type { Issue, Priority } from '@/features/issues/types'
 import { PRIORITY_BADGE, PRIORITY_ORDER } from '@/features/issues/priority'
 import { Loading } from '@/components/common/Loading'
+import { Button, Card, Input, Select } from '@/components/ui'
 import { cn } from '@/lib/utils'
-
-const inputClass =
-  'w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring'
-const selectClass =
-  'h-9 rounded-md border border-input bg-background px-2 text-sm'
 
 export default function ProjectBoard() {
   const { t } = useTranslation()
@@ -53,13 +50,12 @@ export default function ProjectBoard() {
         setItems((prev) => (cursor ? [...prev, ...res.data] : res.data))
         setNextCursor(res.next_cursor)
       } catch {
-        // noop
+        // handled by global toast
       }
     },
     [fetchIssues, slug, pid, search],
   )
 
-  // Reload the first page whenever the search term changes.
   useEffect(() => {
     void loadPage()
   }, [loadPage])
@@ -77,15 +73,11 @@ export default function ProjectBoard() {
       setNewPriority('none')
       void loadPage()
     } catch {
-      // noop
+      // handled by global toast
     }
   }
 
-  const columns = Array.isArray(states)
-    ? [...states].sort((a, b) => a.order - b.order)
-    : []
-
-  // Board shows top-level issues; subtasks live on the parent's details page.
+  const columns = Array.isArray(states) ? [...states].sort((a, b) => a.order - b.order) : []
   const visible = items.filter(
     (issue) =>
       issue.parent_id === null &&
@@ -95,105 +87,83 @@ export default function ProjectBoard() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold">{t('issues.title')}</h1>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <Link
-            to={`/${slug}/projects/${pid}/cycles`}
-            className="underline-offset-4 hover:text-foreground hover:underline"
-          >
-            {t('cycles.title')}
-          </Link>
-          <Link
-            to={`/${slug}/projects/${pid}/modules`}
-            className="underline-offset-4 hover:text-foreground hover:underline"
-          >
-            {t('modules.title')}
-          </Link>
-          <Link
+        <h1 className="text-2xl font-bold tracking-tight">{t('issues.title')}</h1>
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <NavPill to={`/${slug}/projects/${pid}/cycles`} icon={RefreshCw} label={t('cycles.title')} />
+          <NavPill to={`/${slug}/projects/${pid}/modules`} icon={Layers} label={t('modules.title')} />
+          <NavPill
             to={`/${slug}/projects/${pid}/settings`}
-            className="underline-offset-4 hover:text-foreground hover:underline"
-          >
-            {t('projects.toSettings')}
-          </Link>
+            icon={Settings}
+            label={t('projects.toSettings')}
+          />
         </div>
       </div>
 
-      <form
-        onSubmit={onCreate}
-        className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4"
-      >
-        <div className="min-w-[200px] flex-1 space-y-2">
-          <label htmlFor="i-title" className="text-sm font-medium">
-            {t('issues.issueTitle')}
-          </label>
+      <Card className="p-4">
+        <form onSubmit={onCreate} className="flex flex-wrap items-end gap-3">
+          <div className="min-w-[220px] flex-1 space-y-1.5">
+            <label htmlFor="i-title" className="text-sm font-medium">
+              {t('issues.issueTitle')}
+            </label>
+            <Input
+              id="i-title"
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={t('issues.issueTitle')}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label htmlFor="i-state" className="text-sm font-medium">
+              {t('issues.state')}
+            </label>
+            <Select id="i-state" required value={stateId} onChange={(e) => setStateId(e.target.value)}>
+              <option value="" disabled>
+                —
+              </option>
+              {columns.map((state) => (
+                <option key={state.id} value={state.id}>
+                  {state.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <label htmlFor="i-priority" className="text-sm font-medium">
+              {t('issues.priority')}
+            </label>
+            <Select
+              id="i-priority"
+              value={newPriority}
+              onChange={(e) => setNewPriority(e.target.value as Priority)}
+            >
+              {PRIORITY_ORDER.map((value) => (
+                <option key={value} value={value}>
+                  {t(`issues.priorities.${value}`)}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <Button type="submit" loading={isCreating} disabled={!stateId} className="shrink-0">
+            <Plus className="h-4 w-4" />
+            {t('issues.create')}
+          </Button>
+        </form>
+      </Card>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2 rounded-xl border border-input bg-secondary/50 px-3 py-2 text-sm">
+          <Search className="h-4 w-4 text-muted-foreground" />
           <input
-            id="i-title"
-            required
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            className={inputClass}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('issues.search')}
+            className="w-44 bg-transparent outline-none placeholder:text-muted-foreground"
           />
         </div>
-        <div className="space-y-2">
-          <label htmlFor="i-state" className="text-sm font-medium">
-            {t('issues.state')}
-          </label>
-          <select
-            id="i-state"
-            required
-            value={stateId}
-            onChange={(event) => setStateId(event.target.value)}
-            className={selectClass}
-          >
-            <option value="" disabled>
-              —
-            </option>
-            {columns.map((state) => (
-              <option key={state.id} value={state.id}>
-                {state.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="i-priority" className="text-sm font-medium">
-            {t('issues.priority')}
-          </label>
-          <select
-            id="i-priority"
-            value={newPriority}
-            onChange={(event) => setNewPriority(event.target.value as Priority)}
-            className={selectClass}
-          >
-            {PRIORITY_ORDER.map((value) => (
-              <option key={value} value={value}>
-                {t(`issues.priorities.${value}`)}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button
-          type="submit"
-          disabled={isCreating || !stateId}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
-        >
-          {t('issues.create')}
-        </button>
-      </form>
-
-      <div className="flex flex-wrap gap-3">
-        <input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder={t('issues.search')}
-          className={cn(inputClass, 'max-w-xs')}
-        />
-        <select
+        <Select
           value={priorityFilter}
-          onChange={(event) =>
-            setPriorityFilter(event.target.value as Priority | '')
-          }
-          className={selectClass}
+          onChange={(e) => setPriorityFilter(e.target.value as Priority | '')}
         >
           <option value="">{t('issues.allPriorities')}</option>
           {PRIORITY_ORDER.map((value) => (
@@ -201,7 +171,7 @@ export default function ProjectBoard() {
               {t(`issues.priorities.${value}`)}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       {columns.length === 0 ? (
@@ -209,18 +179,13 @@ export default function ProjectBoard() {
       ) : (
         <div className="flex gap-4 overflow-x-auto pb-4">
           {columns.map((state) => {
-            const columnIssues = visible.filter(
-              (issue) => issue.state_id === state.id,
-            )
+            const columnIssues = visible.filter((issue) => issue.state_id === state.id)
             return (
               <div key={state.id} className="w-72 shrink-0 space-y-3">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: state.color }}
-                  />
+                <div className="flex items-center gap-2 px-1">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: state.color }} />
                   <span className="text-sm font-semibold">{state.name}</span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="ml-auto rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
                     {columnIssues.length}
                   </span>
                 </div>
@@ -229,33 +194,39 @@ export default function ProjectBoard() {
                     <Link
                       key={issue.id}
                       to={`/${slug}/projects/${pid}/issues/${issue.id}`}
-                      className="block rounded-lg border border-border bg-card p-3 transition-colors hover:bg-accent"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono text-xs text-muted-foreground">
-                          #{issue.sequence_id}
-                        </span>
-                        <span
-                          className={cn(
-                            'rounded px-1.5 py-0.5 text-[10px] font-medium uppercase',
-                            PRIORITY_BADGE[issue.priority],
-                          )}
-                        >
-                          {t(`issues.priorities.${issue.priority}`)}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-sm font-medium">{issue.title}</p>
-                      {(issue.assignees.length > 0 ||
-                        issue.labels.length > 0) && (
-                        <div className="mt-2 flex gap-3 text-xs text-muted-foreground">
-                          {issue.assignees.length > 0 && (
-                            <span>👤 {issue.assignees.length}</span>
-                          )}
-                          {issue.labels.length > 0 && (
-                            <span>🏷 {issue.labels.length}</span>
-                          )}
+                      <Card hover className="p-3">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-xs text-muted-foreground">
+                            #{issue.sequence_id}
+                          </span>
+                          <span
+                            className={cn(
+                              'rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase',
+                              PRIORITY_BADGE[issue.priority],
+                            )}
+                          >
+                            {t(`issues.priorities.${issue.priority}`)}
+                          </span>
                         </div>
-                      )}
+                        <p className="mt-1.5 text-sm font-medium">{issue.title}</p>
+                        {(issue.assignees.length > 0 || issue.labels.length > 0) && (
+                          <div className="mt-2 flex gap-3 text-xs text-muted-foreground">
+                            {issue.assignees.length > 0 && (
+                              <span className="inline-flex items-center gap-1">
+                                <User className="h-3 w-3" />
+                                {issue.assignees.length}
+                              </span>
+                            )}
+                            {issue.labels.length > 0 && (
+                              <span className="inline-flex items-center gap-1">
+                                <Tag className="h-3 w-3" />
+                                {issue.labels.length}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </Card>
                     </Link>
                   ))}
                 </div>
@@ -266,15 +237,30 @@ export default function ProjectBoard() {
       )}
 
       {nextCursor && (
-        <button
-          type="button"
-          onClick={() => void loadPage(nextCursor)}
-          disabled={isFetching}
-          className="rounded-md border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-accent disabled:opacity-50"
-        >
+        <Button variant="outline" onClick={() => void loadPage(nextCursor)} loading={isFetching}>
           {t('issues.loadMore')}
-        </button>
+        </Button>
       )}
     </div>
+  )
+}
+
+function NavPill({
+  to,
+  icon: Icon,
+  label,
+}: {
+  to: string
+  icon: typeof Settings
+  label: string
+}) {
+  return (
+    <Link
+      to={to}
+      className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+    >
+      <Icon className="h-3.5 w-3.5" />
+      {label}
+    </Link>
   )
 }

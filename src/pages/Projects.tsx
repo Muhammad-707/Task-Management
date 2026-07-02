@@ -2,24 +2,21 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { ArrowRight, FolderKanban, Plus, Settings } from 'lucide-react'
 import { useGetWorkspaceMembersQuery } from '@/features/workspaces/workspacesApi'
 import {
   useCreateProjectMutation,
   useGetProjectsQuery,
 } from '@/features/projects/projectsApi'
 import { SkeletonList } from '@/components/common/Skeleton'
-
-const inputClass =
-  'w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring'
+import { Button, Card, EmptyState, Field, Input, Select, Textarea } from '@/components/ui'
 
 export default function Projects() {
   const { t } = useTranslation()
   const { workspaceSlug } = useParams()
   const slug = workspaceSlug ?? ''
 
-  const { data: projects, isLoading } = useGetProjectsQuery(slug, {
-    skip: !slug,
-  })
+  const { data: projects, isLoading } = useGetProjectsQuery(slug, { skip: !slug })
   const { data: members } = useGetWorkspaceMembersQuery(slug, { skip: !slug })
   const [createProject, { isLoading: isCreating }] = useCreateProjectMutation()
 
@@ -40,112 +37,92 @@ export default function Projects() {
       setDescription('')
       setLeadId('')
     } catch {
-      // noop
+      // handled by global toast
     }
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
+    <div className="mx-auto max-w-3xl space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t('projects.title')}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t('projects.title')}</h1>
         <Link
           to={`/${slug}/settings`}
-          className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
+          <Settings className="h-4 w-4" />
           {t('projects.toSettings')}
         </Link>
       </div>
 
-      <form
-        onSubmit={onCreate}
-        className="space-y-4 rounded-lg border border-border p-4"
-      >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <label htmlFor="p-name" className="text-sm font-medium">
-              {t('projects.name')}
-            </label>
-            <input
-              id="p-name"
-              required
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              className={inputClass}
-            />
+      <Card className="p-6">
+        <form onSubmit={onCreate} className="space-y-5">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label={t('projects.name')} htmlFor="p-name">
+              <Input id="p-name" required value={name} onChange={(e) => setName(e.target.value)} />
+            </Field>
+            <Field label={t('projects.identifier')} htmlFor="p-identifier">
+              <Input
+                id="p-identifier"
+                required
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+              />
+            </Field>
           </div>
-          <div className="space-y-2">
-            <label htmlFor="p-identifier" className="text-sm font-medium">
-              {t('projects.identifier')}
-            </label>
-            <input
-              id="p-identifier"
-              required
-              value={identifier}
-              onChange={(event) => setIdentifier(event.target.value)}
-              className={inputClass}
+          <Field label={t('projects.description')} htmlFor="p-description">
+            <Textarea
+              id="p-description"
+              rows={2}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
             />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="p-description" className="text-sm font-medium">
-            {t('projects.description')}
-          </label>
-          <textarea
-            id="p-description"
-            rows={2}
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            className={inputClass}
-          />
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="p-lead" className="text-sm font-medium">
-            {t('projects.lead')}
-          </label>
-          <select
-            id="p-lead"
-            value={leadId}
-            onChange={(event) => setLeadId(event.target.value)}
-            className={inputClass}
-          >
-            <option value="">{t('projects.noLead')}</option>
-            {Array.isArray(members) &&
-              members.map((member) => (
-                <option key={member.user_id} value={member.user_id}>
-                  {member.user.display_name}
-                </option>
-              ))}
-          </select>
-        </div>
-        <button
-          type="submit"
-          disabled={isCreating}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
-        >
-          {t('projects.create')}
-        </button>
-      </form>
+          </Field>
+          <Field label={t('projects.lead')} htmlFor="p-lead">
+            <Select
+              id="p-lead"
+              value={leadId}
+              onChange={(e) => setLeadId(e.target.value)}
+              className="w-full"
+            >
+              <option value="">{t('projects.noLead')}</option>
+              {Array.isArray(members) &&
+                members.map((member) => (
+                  <option key={member.user_id} value={member.user_id}>
+                    {member.user.display_name}
+                  </option>
+                ))}
+            </Select>
+          </Field>
+          <Button type="submit" loading={isCreating}>
+            <Plus className="h-4 w-4" />
+            {t('projects.create')}
+          </Button>
+        </form>
+      </Card>
 
       {isLoading ? (
         <SkeletonList />
       ) : Array.isArray(projects) && projects.length > 0 ? (
-        <ul className="space-y-2">
+        <div className="grid gap-3 sm:grid-cols-2">
           {projects.map((project) => (
-            <li key={project.id}>
-              <Link
-                to={`/${slug}/projects/${project.id}`}
-                className="flex items-center justify-between rounded-lg border border-border p-4 transition-colors hover:bg-accent"
-              >
-                <span className="font-medium">{project.name}</span>
-                <span className="rounded bg-muted px-2 py-0.5 font-mono text-xs text-muted-foreground">
-                  {project.identifier}
+            <Link key={project.id} to={`/${slug}/projects/${project.id}`}>
+              <Card hover className="flex items-center gap-3 p-4">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <FolderKanban className="h-5 w-5" />
                 </span>
-              </Link>
-            </li>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{project.name}</p>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {project.identifier}
+                  </span>
+                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+              </Card>
+            </Link>
           ))}
-        </ul>
+        </div>
       ) : (
-        <p className="text-muted-foreground">{t('projects.empty')}</p>
+        <EmptyState icon={FolderKanban} title={t('projects.empty')} />
       )}
     </div>
   )

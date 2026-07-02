@@ -50,6 +50,11 @@
 
   --glow: 0 0 0 rgba(124, 92, 255, 0);
   --shadow-card: 0 1px 2px rgba(16, 12, 40, 0.06), 0 8px 24px rgba(16, 12, 40, 0.04);
+  --shadow-glow: 0 10px 40px -12px rgba(124, 92, 255, 0.45);
+
+  /* Glassmorphism surfaces (used by the landing page). */
+  --glass: oklch(0.2 0.02 285 / 0.03);
+  --glass-border: oklch(0.2 0.02 285 / 0.12);
 }
 
 .dark {
@@ -92,6 +97,11 @@
 
   --glow: 0 0 40px rgba(124, 92, 255, 0.25);
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.35);
+  --shadow-glow: 0 10px 44px -10px rgba(124, 92, 255, 0.6);
+
+  /* Glassmorphism surfaces (used by the landing page). */
+  --glass: oklch(1 0 0 / 0.03);
+  --glass-border: oklch(1 0 0 / 0.1);
 }
 
 @theme inline {
@@ -139,6 +149,9 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-glass: var(--glass);
+  --color-glass-border: var(--glass-border);
 }
 
 @layer base {
@@ -213,5 +226,48 @@
       var(--color-primary)
     );
     box-shadow: 0 6px 20px -6px color-mix(in oklab, var(--color-primary) 70%, transparent);
+  }
+
+  /* --- Landing page surfaces (glassmorphism kit) --- */
+  .glass-card {
+    background: var(--color-glass);
+    border: 1px solid var(--color-glass-border);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: var(--shadow-card);
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: var(--radius-md);
+    background-color: var(--color-primary);
+    color: var(--color-primary-foreground);
+    font-weight: 500;
+    box-shadow: var(--shadow-glow);
+    transition: transform 0.2s ease, filter 0.2s ease;
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px) scale(1.02);
+    filter: brightness(1.06);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: var(--radius-md);
+    background: var(--color-glass);
+    border: 1px solid var(--color-glass-border);
+    color: var(--color-foreground);
+    font-weight: 500;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .btn-secondary:hover {
+    transform: translateY(-1px);
+    background: color-mix(in oklab, var(--color-foreground) 6%, transparent);
   }
 }
