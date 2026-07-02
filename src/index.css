@@ -210,7 +210,6 @@
     color: transparent;
   }
 
-  /* Glassmorphism surface — translucent card with blur. */
   .glass {
     background: color-mix(in oklab, var(--color-card) 78%, transparent);
     backdrop-filter: blur(14px);
