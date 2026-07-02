@@ -16,9 +16,17 @@ import {
   Users,
   Rocket,
   Globe,
+  Menu,
+  X,
+  Sun,
+  Moon,
 } from 'lucide-react'
-import { useRef, type PointerEvent, type ReactNode } from 'react'
+import { useRef, useState, type PointerEvent, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAppSelector } from '@/app/hooks'
+import { useTheme } from '@/app/providers/ThemeProvider'
+import { SUPPORTED_LANGUAGES } from '@/lib/i18n'
+import { useClickOutside } from '@/components/ui'
 
 export default function Landing() {
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated)
@@ -62,10 +70,82 @@ function AmbientBackdrop() {
 
 /* --------------------------------- Nav -------------------------------- */
 
-function Nav() {
+const NAV_LINKS = [
+  { href: '#features', key: 'features' },
+  { href: '#flow', key: 'how' },
+  { href: '#pricing', key: 'pricing' },
+]
+
+const LANG_LABEL: Record<string, string> = { en: 'GB', ru: 'RU', tj: 'TJ' }
+
+function ThemeToggleButton() {
+  const { theme, toggleTheme } = useTheme()
   return (
-    <header className="relative z-20">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
+    <button
+      type="button"
+      onClick={toggleTheme}
+      aria-label="Toggle theme"
+      className="grid h-9 w-9 place-items-center rounded-lg border border-glass-border bg-glass text-muted-foreground transition-colors hover:text-foreground"
+    >
+      {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </button>
+  )
+}
+
+function LanguageMenu() {
+  const { t, i18n } = useTranslation()
+  const [open, setOpen] = useState(false)
+  const ref = useClickOutside<HTMLDivElement>(open, () => setOpen(false))
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-label={t('language.label')}
+        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-glass-border bg-glass px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <Globe className="h-4 w-4" />
+        {LANG_LABEL[i18n.language] ?? 'EN'}
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-2 w-40 overflow-hidden rounded-xl border border-glass-border bg-popover p-1.5 shadow-2xl backdrop-blur-xl">
+          {SUPPORTED_LANGUAGES.map((lng) => (
+            <button
+              key={lng}
+              type="button"
+              onClick={() => {
+                void i18n.changeLanguage(lng)
+                setOpen(false)
+              }}
+              className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-accent ${
+                i18n.language === lng ? 'bg-accent/60 text-foreground' : 'text-muted-foreground'
+              }`}
+            >
+              <span className="flex h-5 w-6 items-center justify-center rounded bg-secondary text-[10px] font-semibold">
+                {LANG_LABEL[lng]}
+              </span>
+              {t(`language.${lng}`)}
+              {i18n.language === lng && <Check className="ml-auto h-4 w-4 text-primary" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Nav() {
+  const { t, i18n } = useTranslation()
+  const [open, setOpen] = useState(false)
+  const ref = useClickOutside<HTMLElement>(open, () => setOpen(false))
+
+  return (
+    <header
+      ref={ref}
+      className="fixed inset-x-0 top-0 z-50 border-b border-glass-border bg-background/70 backdrop-blur-xl"
+    >
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <Link to="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary/20 ring-1 ring-primary/40">
             <Sparkles className="h-4 w-4 text-primary" />
@@ -74,32 +154,104 @@ function Nav() {
         </Link>
 
         <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
-          <a href="#features" className="transition-colors hover:text-foreground">
-            Features
-          </a>
-          <a href="#flow" className="transition-colors hover:text-foreground">
-            How it works
-          </a>
-          <a href="#pricing" className="transition-colors hover:text-foreground">
-            Pricing
-          </a>
+          {NAV_LINKS.map((l) => (
+            <a key={l.href} href={l.href} className="transition-colors hover:text-foreground">
+              {t(`landing.nav.${l.key}`)}
+            </a>
+          ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        {/* Desktop controls */}
+        <div className="hidden items-center gap-2 md:flex">
+          <LanguageMenu />
+          <ThemeToggleButton />
           <Link
             to="/login"
-            className="hidden rounded-md px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline-block"
+            className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
-            Sign in
+            {t('auth.signIn')}
           </Link>
           <Link
             to="/register"
             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-[var(--shadow-glow)] transition-transform hover:scale-[1.02]"
           >
-            Get started
+            {t('common.getStarted')}
           </Link>
         </div>
+
+        {/* Mobile controls */}
+        <div className="flex items-center gap-2 md:hidden">
+          <ThemeToggleButton />
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-label="Menu"
+            aria-expanded={open}
+            className="grid h-9 w-9 place-items-center rounded-lg border border-glass-border bg-glass text-foreground"
+          >
+            {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </button>
+        </div>
       </div>
+
+      {/* Mobile dropdown menu */}
+      {open && (
+        <div className="border-t border-glass-border bg-background/95 backdrop-blur-xl md:hidden">
+          <div className="mx-auto max-w-7xl space-y-4 px-6 py-5">
+            <nav className="flex flex-col gap-1 text-sm">
+              {NAV_LINKS.map((l) => (
+                <a
+                  key={l.href}
+                  href={l.href}
+                  onClick={() => setOpen(false)}
+                  className="rounded-lg px-3 py-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                >
+                  {t(`landing.nav.${l.key}`)}
+                </a>
+              ))}
+            </nav>
+
+            <div>
+              <p className="px-1 pb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {t('language.label')}
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {SUPPORTED_LANGUAGES.map((lng) => (
+                  <button
+                    key={lng}
+                    type="button"
+                    onClick={() => void i18n.changeLanguage(lng)}
+                    className={`rounded-lg border px-2 py-2 text-xs font-medium transition-colors ${
+                      i18n.language === lng
+                        ? 'border-primary/60 bg-primary/10 text-foreground'
+                        : 'border-glass-border bg-glass text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {t(`language.${lng}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <Link
+                to="/login"
+                onClick={() => setOpen(false)}
+                className="btn-secondary flex-1 py-2.5 text-sm"
+              >
+                {t('auth.signIn')}
+              </Link>
+              <Link
+                to="/register"
+                onClick={() => setOpen(false)}
+                className="btn-primary flex-1 py-2.5 text-sm"
+              >
+                {t('common.getStarted')}
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   )
 }
@@ -107,8 +259,11 @@ function Nav() {
 /* --------------------------------- Hero ------------------------------- */
 
 function Hero() {
+  const { t } = useTranslation()
+  const trust = t('landing.hero.trust', { returnObjects: true }) as string[]
+
   return (
-    <section className="relative mx-auto max-w-7xl px-6 pt-16 pb-24 lg:pt-24">
+    <section className="relative mx-auto max-w-7xl px-6 pt-28 pb-24 lg:pt-36">
       <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_1fr]">
         <div className="text-center lg:text-left">
           <motion.div
@@ -121,7 +276,7 @@ function Hero() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
             </span>
-            Public beta · v1.0 launching Q3
+            {t('landing.hero.badge')}
           </motion.div>
 
           <motion.h1
@@ -130,8 +285,8 @@ function Hero() {
             transition={{ delay: 0.05, duration: 0.6 }}
             className="mt-6 text-5xl font-semibold tracking-tight text-gradient sm:text-6xl lg:text-7xl"
           >
-            The agile OS
-            <br /> your team actually enjoys.
+            {t('landing.hero.title1')}
+            <br /> {t('landing.hero.title2')}
           </motion.h1>
 
           <motion.p
@@ -140,9 +295,7 @@ function Hero() {
             transition={{ delay: 0.12, duration: 0.6 }}
             className="mx-auto mt-6 max-w-xl text-pretty text-base text-muted-foreground lg:mx-0 lg:text-lg"
           >
-            Plane.app unifies boards, cycles, modules and analytics into one
-            keyboard-first workspace — wrapped in a glassmorphic, dark-first UI
-            you'll actually want to live in.
+            {t('landing.hero.subtitle')}
           </motion.p>
 
           <motion.div
@@ -152,14 +305,14 @@ function Hero() {
             className="mt-9 flex flex-wrap items-center justify-center gap-3 lg:justify-start"
           >
             <Link to="/register" className="btn-primary group px-6 py-3 text-sm">
-              Start free
+              {t('landing.hero.startFree')}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <a
               href="#features"
               className="glass-card rounded-lg px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-white/5"
             >
-              Explore the platform
+              {t('landing.hero.explore')}
             </a>
           </motion.div>
 
@@ -169,10 +322,10 @@ function Hero() {
             transition={{ delay: 0.35, duration: 0.6 }}
             className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-muted-foreground lg:justify-start"
           >
-            {['SOC2 in progress', 'Self-hostable', 'GDPR ready', '99.98% uptime'].map((t) => (
-              <span key={t} className="inline-flex items-center gap-1.5">
+            {trust.map((item) => (
+              <span key={item} className="inline-flex items-center gap-1.5">
                 <ShieldCheck className="h-3.5 w-3.5 text-success" />
-                {t}
+                {item}
               </span>
             ))}
           </motion.div>
@@ -192,6 +345,7 @@ function Hero() {
 /* -------------------------- Tilt Analytics Card ------------------------- */
 
 function TiltAnalyticsCard() {
+  const { t } = useTranslation()
   const ref = useRef<HTMLDivElement | null>(null)
   const x = useMotionValue(0)
   const y = useMotionValue(0)
@@ -215,6 +369,18 @@ function TiltAnalyticsCard() {
     x.set(0)
     y.set(0)
   }
+
+  const metrics = [
+    { label: t('landing.card.velocity'), value: '42', hint: t('landing.card.velocityHint') },
+    { label: t('landing.card.cycleTime'), value: '3.4d', hint: t('landing.card.cycleTimeHint') },
+    { label: t('landing.card.doneRate'), value: '94%', hint: t('landing.card.doneRateHint') },
+  ]
+
+  const tasks = [
+    { title: t('landing.card.task1'), state: t('landing.card.stInProgress'), tint: 'oklch(0.74 0.18 45)' },
+    { title: t('landing.card.task2'), state: t('landing.card.stInReview'), tint: 'oklch(0.7 0.16 220)' },
+    { title: t('landing.card.task3'), state: t('landing.card.stBacklog'), tint: 'oklch(0.7 0.03 270)' },
+  ]
 
   return (
     <motion.div
@@ -246,9 +412,9 @@ function TiltAnalyticsCard() {
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                  Cycle throughput
+                  {t('landing.card.throughput')}
                 </p>
-                <p className="text-sm font-semibold text-foreground">Sprint 24 · Live</p>
+                <p className="text-sm font-semibold text-foreground">{t('landing.card.live')}</p>
               </div>
             </div>
             <span className="rounded-full border border-success/40 bg-success/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-success">
@@ -263,11 +429,7 @@ function TiltAnalyticsCard() {
 
           {/* Metric grid */}
           <div className="mt-6 grid grid-cols-3 gap-3">
-            {[
-              { label: 'Velocity', value: '42', hint: 'pts/sprint' },
-              { label: 'Cycle time', value: '3.4d', hint: 'median' },
-              { label: 'Done rate', value: '94%', hint: 'on-time' },
-            ].map((m) => (
+            {metrics.map((m) => (
               <div
                 key={m.label}
                 className="rounded-xl border border-glass-border bg-white/[0.03] p-3"
@@ -284,23 +446,19 @@ function TiltAnalyticsCard() {
 
           {/* Task chips */}
           <div className="mt-6 space-y-2" style={{ transform: 'translateZ(30px)' }}>
-            {[
-              { title: 'Design tokens refactor', state: 'In progress', tint: 'oklch(0.74 0.18 45)' },
-              { title: 'Realtime presence in issue drawer', state: 'In review', tint: 'oklch(0.7 0.16 220)' },
-              { title: 'Notification digest emails', state: 'Backlog', tint: 'oklch(0.7 0.03 270)' },
-            ].map((t) => (
+            {tasks.map((task) => (
               <div
-                key={t.title}
+                key={task.title}
                 className="flex items-center justify-between rounded-lg border border-glass-border bg-white/[0.02] px-3 py-2 text-xs"
               >
                 <div className="flex items-center gap-2">
                   <span
                     className="h-2 w-2 rounded-full"
-                    style={{ backgroundColor: t.tint, boxShadow: `0 0 12px ${t.tint}` }}
+                    style={{ backgroundColor: task.tint, boxShadow: `0 0 12px ${task.tint}` }}
                   />
-                  <span className="text-foreground">{t.title}</span>
+                  <span className="text-foreground">{task.title}</span>
                 </div>
-                <span className="text-muted-foreground">{t.state}</span>
+                <span className="text-muted-foreground">{task.state}</span>
               </div>
             ))}
           </div>
@@ -359,20 +517,21 @@ function Sparkline() {
 /* ----------------------------- Bento Features -------------------------- */
 
 function BentoFeatures() {
+  const { t } = useTranslation()
   return (
-    <section id="features" className="relative mx-auto max-w-7xl px-6 py-24">
+    <section id="features" className="relative mx-auto max-w-7xl scroll-mt-24 px-6 py-24">
       <SectionHeader
-        eyebrow="Everything in one workspace"
-        title="Built for teams that ship every week"
-        subtitle="From backlog to release, Plane.app connects planning, execution and reporting without shuffling between tools."
+        eyebrow={t('landing.features.eyebrow')}
+        title={t('landing.features.title')}
+        subtitle={t('landing.features.subtitle')}
       />
 
       <div className="mt-14 grid gap-4 md:grid-cols-6 md:grid-rows-4">
         <BentoCard
           className="md:col-span-4 md:row-span-2"
           icon={LayoutGrid}
-          title="Dynamic Kanban that adapts to your team"
-          desc="States are defined per project. Drag, filter, group and jump between board, list and calendar without losing context."
+          title={t('landing.features.kanbanTitle')}
+          desc={t('landing.features.kanbanDesc')}
           accent="oklch(0.7 0.2 285)"
         >
           <MiniBoard />
@@ -381,8 +540,8 @@ function BentoFeatures() {
         <BentoCard
           className="md:col-span-2 md:row-span-2"
           icon={Workflow}
-          title="Cycles & Modules"
-          desc="Slice work into sprints and cross-cutting themes. Track scope, progress and slip in real time."
+          title={t('landing.features.cyclesTitle')}
+          desc={t('landing.features.cyclesDesc')}
           accent="oklch(0.7 0.18 200)"
         >
           <RingMeter progress={72} />
@@ -391,8 +550,8 @@ function BentoFeatures() {
         <BentoCard
           className="md:col-span-2 md:row-span-2"
           icon={GitBranch}
-          title="Powerful relations"
-          desc="Blocks, depends-on and relates-to — every link is bidirectional with instant mirror updates."
+          title={t('landing.features.relationsTitle')}
+          desc={t('landing.features.relationsDesc')}
           accent="oklch(0.7 0.2 320)"
         >
           <RelationsPreview />
@@ -401,8 +560,8 @@ function BentoFeatures() {
         <BentoCard
           className="md:col-span-2 md:row-span-2"
           icon={MessageSquare}
-          title="Threaded discussions"
-          desc="Comment, mention and resolve — right next to the work. Edits are versioned, deletes are soft."
+          title={t('landing.features.discussionsTitle')}
+          desc={t('landing.features.discussionsDesc')}
           accent="oklch(0.72 0.16 155)"
         >
           <CommentsPreview />
@@ -411,8 +570,8 @@ function BentoFeatures() {
         <BentoCard
           className="md:col-span-2 md:row-span-2"
           icon={Bell}
-          title="Signal, not noise"
-          desc="A single unified inbox for mentions, assignments and status changes across every workspace."
+          title={t('landing.features.signalTitle')}
+          desc={t('landing.features.signalDesc')}
           accent="oklch(0.74 0.18 45)"
         >
           <NotificationsPreview />
@@ -473,10 +632,11 @@ function BentoCard({
 }
 
 function MiniBoard() {
+  const { t } = useTranslation()
   const cols = [
-    { name: 'Backlog', tint: 'oklch(0.7 0.03 270)', count: 12, items: ['Design tokens', 'Refactor router'] },
-    { name: 'In progress', tint: 'oklch(0.74 0.18 45)', count: 4, items: ['Kanban DnD', 'Issue drawer'] },
-    { name: 'Done', tint: 'oklch(0.72 0.16 155)', count: 28, items: ['Auth flow', 'Invites'] },
+    { name: t('landing.features.board.backlog'), tint: 'oklch(0.7 0.03 270)', count: 12, items: ['Design tokens', 'Refactor router'] },
+    { name: t('landing.features.board.inProgress'), tint: 'oklch(0.74 0.18 45)', count: 4, items: ['Kanban DnD', 'Issue drawer'] },
+    { name: t('landing.features.board.done'), tint: 'oklch(0.72 0.16 155)', count: 28, items: ['Auth flow', 'Invites'] },
   ]
   return (
     <div className="grid grid-cols-3 gap-2">
@@ -490,12 +650,12 @@ function MiniBoard() {
             <span className="text-muted-foreground">{c.count}</span>
           </div>
           <div className="space-y-1.5">
-            {c.items.map((t) => (
+            {c.items.map((it) => (
               <div
-                key={t}
+                key={it}
                 className="rounded-md border border-glass-border bg-white/[0.03] px-2 py-1.5 text-[11px] text-foreground"
               >
-                {t}
+                {it}
               </div>
             ))}
           </div>
@@ -506,6 +666,7 @@ function MiniBoard() {
 }
 
 function RingMeter({ progress }: { progress: number }) {
+  const { t } = useTranslation()
   const r = 44
   const c = 2 * Math.PI * r
   const dash = (progress / 100) * c
@@ -535,7 +696,9 @@ function RingMeter({ progress }: { progress: number }) {
         <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">
           <div>
             <p className="text-2xl font-semibold text-gradient">{progress}%</p>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Cycle 24</p>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              {t('landing.features.cycleShort')}
+            </p>
           </div>
         </div>
       </div>
@@ -544,13 +707,15 @@ function RingMeter({ progress }: { progress: number }) {
 }
 
 function RelationsPreview() {
+  const { t } = useTranslation()
+  const rows = [
+    { rel: t('landing.features.relBlocks'), tag: 'PLN-142', title: 'Payments migration', tone: 'oklch(0.65 0.24 20)' },
+    { rel: t('landing.features.relBlockedBy'), tag: 'PLN-101', title: 'Auth refresh loop', tone: 'oklch(0.74 0.18 45)' },
+    { rel: t('landing.features.relRelatesTo'), tag: 'PLN-89', title: 'Onboarding revamp', tone: 'oklch(0.7 0.16 220)' },
+  ]
   return (
     <div className="space-y-2 text-xs">
-      {[
-        { rel: 'blocks', tag: 'PLN-142', title: 'Payments migration', tone: 'oklch(0.65 0.24 20)' },
-        { rel: 'blocked by', tag: 'PLN-101', title: 'Auth refresh loop', tone: 'oklch(0.74 0.18 45)' },
-        { rel: 'relates to', tag: 'PLN-89', title: 'Onboarding revamp', tone: 'oklch(0.7 0.16 220)' },
-      ].map((r) => (
+      {rows.map((r) => (
         <div
           key={r.tag}
           className="flex items-center justify-between rounded-lg border border-glass-border bg-white/[0.02] px-2.5 py-2"
@@ -572,12 +737,14 @@ function RelationsPreview() {
 }
 
 function CommentsPreview() {
+  const { t } = useTranslation()
+  const rows = [
+    { name: 'Muhammad', initials: 'MG', msg: t('landing.features.comment1') },
+    { name: 'Elena', initials: 'EK', msg: t('landing.features.comment2') },
+  ]
   return (
     <div className="space-y-2">
-      {[
-        { name: 'Muhammad', initials: 'MG', msg: 'Pushed the fix — ready for review 🚀' },
-        { name: 'Elena', initials: 'EK', msg: "Nice. Let's ship it before EoD." },
-      ].map((c) => (
+      {rows.map((c) => (
         <div
           key={c.name}
           className="flex items-start gap-2 rounded-lg border border-glass-border bg-white/[0.02] p-2.5"
@@ -596,13 +763,15 @@ function CommentsPreview() {
 }
 
 function NotificationsPreview() {
+  const { t } = useTranslation()
+  const rows = [
+    { icon: Users, txt: t('landing.features.notif1') },
+    { icon: MessageSquare, txt: t('landing.features.notif2') },
+    { icon: Rocket, txt: t('landing.features.notif3') },
+  ]
   return (
     <div className="space-y-2 text-xs">
-      {[
-        { icon: Users, txt: 'Elena assigned PLN-142 to you' },
-        { icon: MessageSquare, txt: 'New comment on Auth refresh loop' },
-        { icon: Rocket, txt: 'Cycle 24 has been closed' },
-      ].map((n, i) => (
+      {rows.map((n, i) => (
         <div
           key={i}
           className="flex items-center gap-2 rounded-lg border border-glass-border bg-white/[0.02] px-2.5 py-2"
@@ -618,35 +787,19 @@ function NotificationsPreview() {
 /* ----------------------------- Flow Timeline --------------------------- */
 
 function FlowTimeline() {
-  const steps = [
-    {
-      icon: Layers,
-      title: 'Model your work',
-      body: 'Create workspaces per tenant, projects per product, and dynamic states per team. Everything is multi-tenant from day one.',
-    },
-    {
-      icon: LayoutGrid,
-      title: 'Plan the cycle',
-      body: 'Group issues into sprints and cross-cutting modules. Estimates, priorities and dependencies all live on the issue.',
-    },
-    {
-      icon: Zap,
-      title: 'Execute in flow',
-      body: 'The Kanban is dynamic — states, filters and views adapt. Keyboard shortcuts everywhere so hands stay on the keys.',
-    },
-    {
-      icon: BarChart3,
-      title: 'Learn & ship faster',
-      body: "Burndown, throughput and workload — surfaced honestly. Analytics you'd actually plan a retro around.",
-    },
-  ]
+  const { t } = useTranslation()
+  const icons = [Layers, LayoutGrid, Zap, BarChart3]
+  const steps = t('landing.flow.steps', { returnObjects: true }) as {
+    title: string
+    body: string
+  }[]
 
   return (
-    <section id="flow" className="relative mx-auto max-w-7xl px-6 py-24">
+    <section id="flow" className="relative mx-auto max-w-7xl scroll-mt-24 px-6 py-24">
       <SectionHeader
-        eyebrow="How it works"
-        title="A flow that respects how software is actually built"
-        subtitle="Four steps, one workspace — no ceremony required."
+        eyebrow={t('landing.flow.eyebrow')}
+        title={t('landing.flow.title')}
+        subtitle={t('landing.flow.subtitle')}
       />
 
       <div className="relative mt-16">
@@ -655,30 +808,33 @@ function FlowTimeline() {
           className="pointer-events-none absolute left-4 top-0 hidden h-full w-px bg-gradient-to-b from-transparent via-primary/40 to-transparent md:block"
         />
         <ol className="grid gap-6 md:grid-cols-2">
-          {steps.map((s, i) => (
-            <motion.li
-              key={s.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-80px' }}
-              transition={{ duration: 0.5, delay: i * 0.06 }}
-              className="glass-card relative rounded-2xl p-6"
-            >
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <div className="absolute -inset-2 rounded-xl bg-primary/25 blur-xl" aria-hidden />
-                  <div className="relative grid h-10 w-10 place-items-center rounded-xl bg-primary/15 ring-1 ring-primary/40">
-                    <s.icon className="h-5 w-5 text-primary" />
+          {steps.map((s, i) => {
+            const Icon = icons[i] ?? Layers
+            return (
+              <motion.li
+                key={s.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.5, delay: i * 0.06 }}
+                className="glass-card relative rounded-2xl p-6"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <div className="absolute -inset-2 rounded-xl bg-primary/25 blur-xl" aria-hidden />
+                    <div className="relative grid h-10 w-10 place-items-center rounded-xl bg-primary/15 ring-1 ring-primary/40">
+                      <Icon className="h-5 w-5 text-primary" />
+                    </div>
                   </div>
+                  <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                    {t('landing.flow.step')} {i + 1}
+                  </p>
                 </div>
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                  Step {i + 1}
-                </p>
-              </div>
-              <h3 className="mt-4 text-lg font-semibold text-foreground">{s.title}</h3>
-              <p className="mt-1.5 text-sm text-muted-foreground">{s.body}</p>
-            </motion.li>
-          ))}
+                <h3 className="mt-4 text-lg font-semibold text-foreground">{s.title}</h3>
+                <p className="mt-1.5 text-sm text-muted-foreground">{s.body}</p>
+              </motion.li>
+            )
+          })}
         </ol>
       </div>
     </section>
@@ -688,130 +844,119 @@ function FlowTimeline() {
 /* -------------------------------- Pricing ------------------------------ */
 
 function Pricing() {
+  const { t } = useTranslation()
+  // Structural data (non-translatable); copy comes from i18n by id.
   const tiers = [
-    {
-      name: 'Free',
-      price: '$0',
-      period: 'forever',
-      desc: 'For individuals and prototypes. Everything you need to plan a small project.',
-      features: ['1 workspace', 'Up to 5 members', 'Boards, cycles, modules', 'Community support'],
-      cta: 'Start free',
-      accent: 'oklch(0.7 0.14 220)',
-      highlight: false,
-    },
-    {
-      name: 'Team',
-      price: '$12',
-      period: 'per user / month',
-      desc: 'For growing teams that need speed, analytics and unlimited workspaces.',
-      features: [
-        'Unlimited workspaces',
-        'Advanced analytics',
-        'Custom states & workflows',
-        'Priority email support',
-      ],
-      cta: 'Start 14-day trial',
-      accent: 'oklch(0.7 0.2 285)',
-      highlight: true,
-    },
-    {
-      name: 'Enterprise',
-      price: 'Custom',
-      period: 'annual',
-      desc: 'For organizations that need SSO, audit logs and a dedicated success manager.',
-      features: ['SAML SSO & SCIM', 'Audit log & retention', 'Self-host option', '24/7 support with SLA'],
-      cta: 'Talk to sales',
-      accent: 'oklch(0.7 0.18 320)',
-      highlight: false,
-    },
+    { id: 'free', price: '$0', accent: 'oklch(0.7 0.14 220)', highlight: false },
+    { id: 'team', price: '$12', accent: 'oklch(0.7 0.2 285)', highlight: true },
+    { id: 'enterprise', price: 'Custom', accent: 'oklch(0.7 0.18 320)', highlight: false },
   ]
 
+  // The "Team" tier is selected by default (like the reference); clicking any
+  // card moves the violet ring border to it.
+  const [selected, setSelected] = useState(1)
+
   return (
-    <section id="pricing" className="relative mx-auto max-w-7xl px-6 py-24">
+    <section id="pricing" className="relative mx-auto max-w-7xl scroll-mt-24 px-6 py-24">
       <SectionHeader
-        eyebrow="Pricing"
-        title="Straightforward, per-seat pricing"
-        subtitle="Start free. Upgrade when your team needs more room to move."
+        eyebrow={t('landing.pricing.eyebrow')}
+        title={t('landing.pricing.title')}
+        subtitle={t('landing.pricing.subtitle')}
       />
 
       <div className="mt-14 grid gap-6 md:grid-cols-3">
-        {tiers.map((t, i) => (
-          <motion.div
-            key={t.name}
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-40px' }}
-            transition={{ duration: 0.55, delay: i * 0.06 }}
-            whileHover={{ y: -6 }}
-            className={`glass-card relative flex flex-col rounded-3xl p-8 ${
-              t.highlight ? 'ring-1 ring-primary/50' : ''
-            }`}
-            style={{
-              boxShadow: t.highlight
-                ? '0 30px 80px -30px oklch(0.5 0.22 285 / 0.55), 0 0 0 1px oklch(0.7 0.2 285 / 0.35) inset'
-                : undefined,
-            }}
-          >
-            {t.highlight ? (
-              <>
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute -top-px left-8 right-8 h-px bg-gradient-to-r from-transparent via-primary to-transparent"
-                />
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full border border-primary/60 bg-primary/20 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary-foreground shadow-[var(--shadow-glow)]">
-                  Most popular
-                </span>
-              </>
-            ) : null}
-
-            <div className="flex items-center gap-2">
-              <span
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: t.accent, boxShadow: `0 0 16px ${t.accent.replace(')', ' / 0.7)')}` }}
-              />
-              <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                {t.name}
-              </h3>
-            </div>
-
-            <div className="mt-6 flex items-baseline gap-2">
-              <span className="text-5xl font-semibold text-gradient">{t.price}</span>
-              <span className="text-sm text-muted-foreground">{t.period}</span>
-            </div>
-            <p className="mt-3 text-sm text-muted-foreground">{t.desc}</p>
-
-            <ul className="mt-6 space-y-2.5 text-sm">
-              {t.features.map((f) => (
-                <li key={f} className="flex items-start gap-2">
-                  <span
-                    className="mt-0.5 grid h-4 w-4 place-items-center rounded-full ring-1 text-foreground"
-                    style={{
-                      backgroundColor: `${t.accent.replace(')', ' / 0.15)')}`,
-                      borderColor: t.accent,
-                    }}
-                  >
-                    <Check className="h-3 w-3" />
+        {tiers.map((tier, i) => {
+          const isSelected = selected === i
+          const features = t(`landing.pricing.${tier.id}.features`, {
+            returnObjects: true,
+          }) as string[]
+          return (
+            <motion.div
+              key={tier.id}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ duration: 0.55, delay: i * 0.06 }}
+              whileHover={{ y: -6 }}
+              onClick={() => setSelected(i)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setSelected(i)}
+              className={`glass-card relative flex cursor-pointer flex-col rounded-3xl p-8 transition-shadow ${
+                isSelected ? 'ring-1 ring-primary/50' : ''
+              }`}
+              style={{
+                boxShadow: isSelected
+                  ? '0 30px 80px -30px oklch(0.5 0.22 285 / 0.55), 0 0 0 1px oklch(0.7 0.2 285 / 0.35) inset'
+                  : undefined,
+              }}
+            >
+              {tier.highlight ? (
+                <>
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute -top-px left-8 right-8 h-px bg-gradient-to-r from-transparent via-primary to-transparent"
+                  />
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full border border-primary/60 bg-primary/20 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary-foreground shadow-[var(--shadow-glow)]">
+                    {t('landing.pricing.popular')}
                   </span>
-                  <span className="text-foreground">{f}</span>
-                </li>
-              ))}
-            </ul>
+                </>
+              ) : null}
 
-            <div className="mt-8">
-              <Link
-                to="/register"
-                className={
-                  t.highlight
-                    ? 'btn-primary w-full justify-center py-3'
-                    : 'btn-secondary w-full justify-center py-3'
-                }
-              >
-                {t.cta}
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </motion.div>
-        ))}
+              <div className="flex items-center gap-2">
+                <span
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: tier.accent, boxShadow: `0 0 16px ${tier.accent.replace(')', ' / 0.7)')}` }}
+                />
+                <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  {t(`landing.pricing.${tier.id}.name`)}
+                </h3>
+              </div>
+
+              <div className="mt-6 flex items-baseline gap-2">
+                <span className="text-5xl font-semibold text-gradient">{tier.price}</span>
+                <span className="text-sm text-muted-foreground">
+                  {t(`landing.pricing.${tier.id}.period`)}
+                </span>
+              </div>
+              <p className="mt-3 text-sm text-muted-foreground">
+                {t(`landing.pricing.${tier.id}.desc`)}
+              </p>
+
+              <ul className="mt-6 space-y-2.5 text-sm">
+                {features.map((f) => (
+                  <li key={f} className="flex items-start gap-2">
+                    <span
+                      className="mt-0.5 grid h-4 w-4 place-items-center rounded-full ring-1 text-foreground"
+                      style={{
+                        backgroundColor: `${tier.accent.replace(')', ' / 0.15)')}`,
+                        borderColor: tier.accent,
+                      }}
+                    >
+                      <Check className="h-3 w-3" />
+                    </span>
+                    <span className="text-foreground">{f}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-8">
+                <Link
+                  to="/register"
+                  onClick={(e) => e.stopPropagation()}
+                  className={
+                    tier.highlight
+                      ? 'btn-primary w-full justify-center py-3'
+                      : 'btn-secondary w-full justify-center py-3'
+                  }
+                >
+                  {t(`landing.pricing.${tier.id}.cta`)}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </motion.div>
+          )
+        })}
       </div>
     </section>
   )
@@ -842,12 +987,11 @@ function SectionHeader({
 }
 
 function SiteFooter() {
-  const cols = [
-    { title: 'Product', links: ['Features', 'Pricing', 'Changelog', 'Roadmap'] },
-    { title: 'Company', links: ['About', 'Careers', 'Contact', 'Press'] },
-    { title: 'Resources', links: ['Docs', 'Guides', 'API', 'Status'] },
-    { title: 'Legal', links: ['Privacy', 'Terms', 'Security', 'DPA'] },
-  ]
+  const { t } = useTranslation()
+  const cols = ['product', 'company', 'resources', 'legal'].map((k) => ({
+    title: t(`landing.footer.${k}.title`),
+    links: t(`landing.footer.${k}.links`, { returnObjects: true }) as string[],
+  }))
 
   return (
     <footer className="relative border-t border-glass-border">
@@ -860,7 +1004,7 @@ function SiteFooter() {
             <span className="text-gradient">Plane.app</span>
           </Link>
           <p className="mt-3 max-w-xs text-sm text-muted-foreground">
-            The agile OS your team actually enjoys. Built with intent.
+            {t('landing.footer.tagline')}
           </p>
           <div className="mt-5 flex items-center gap-3">
             {[Globe, GitBranch, MessageSquare].map((Icon, i) => (
@@ -896,8 +1040,8 @@ function SiteFooter() {
 
       <div className="border-t border-glass-border">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-6 text-xs text-muted-foreground sm:flex-row">
-          <p>© {new Date().getFullYear()} Plane.app — Built with intent.</p>
-          <p>Crafted for teams who care about the details.</p>
+          <p>© {new Date().getFullYear()} {t('landing.footer.copyright')}</p>
+          <p>{t('landing.footer.crafted')}</p>
         </div>
       </div>
     </footer>

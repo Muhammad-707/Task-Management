@@ -33,6 +33,89 @@
       "mentioned": "mentioned you"
     }
   },
+  "landing": {
+    "nav": { "features": "Features", "how": "How it works", "pricing": "Pricing" },
+    "hero": {
+      "badge": "Public beta · v1.0 launching Q3",
+      "title1": "The agile OS",
+      "title2": "your team actually enjoys.",
+      "subtitle": "Plane.app unifies boards, cycles, modules and analytics into one keyboard-first workspace — wrapped in a glassmorphic, dark-first UI you'll actually want to live in.",
+      "startFree": "Start free",
+      "explore": "Explore the platform",
+      "trust": ["SOC2 in progress", "Self-hostable", "GDPR ready", "99.98% uptime"]
+    },
+    "card": {
+      "throughput": "Cycle throughput",
+      "live": "Sprint 24 · Live",
+      "velocity": "Velocity",
+      "velocityHint": "pts/sprint",
+      "cycleTime": "Cycle time",
+      "cycleTimeHint": "median",
+      "doneRate": "Done rate",
+      "doneRateHint": "on-time",
+      "task1": "Design tokens refactor",
+      "task2": "Realtime presence in issue drawer",
+      "task3": "Notification digest emails",
+      "stInProgress": "In progress",
+      "stInReview": "In review",
+      "stBacklog": "Backlog"
+    },
+    "features": {
+      "eyebrow": "Everything in one workspace",
+      "title": "Built for teams that ship every week",
+      "subtitle": "From backlog to release, Plane.app connects planning, execution and reporting without shuffling between tools.",
+      "kanbanTitle": "Dynamic Kanban that adapts to your team",
+      "kanbanDesc": "States are defined per project. Drag, filter, group and jump between board, list and calendar without losing context.",
+      "cyclesTitle": "Cycles & Modules",
+      "cyclesDesc": "Slice work into sprints and cross-cutting themes. Track scope, progress and slip in real time.",
+      "relationsTitle": "Powerful relations",
+      "relationsDesc": "Blocks, depends-on and relates-to — every link is bidirectional with instant mirror updates.",
+      "discussionsTitle": "Threaded discussions",
+      "discussionsDesc": "Comment, mention and resolve — right next to the work. Edits are versioned, deletes are soft.",
+      "signalTitle": "Signal, not noise",
+      "signalDesc": "A single unified inbox for mentions, assignments and status changes across every workspace.",
+      "board": { "backlog": "Backlog", "inProgress": "In progress", "done": "Done" },
+      "relBlocks": "blocks",
+      "relBlockedBy": "blocked by",
+      "relRelatesTo": "relates to",
+      "notif1": "Elena assigned PLN-142 to you",
+      "notif2": "New comment on Auth refresh loop",
+      "notif3": "Cycle 24 has been closed",
+      "comment1": "Pushed the fix — ready for review 🚀",
+      "comment2": "Nice. Let's ship it before EoD.",
+      "cycleShort": "Cycle 24"
+    },
+    "flow": {
+      "eyebrow": "How it works",
+      "title": "A flow that respects how software is actually built",
+      "subtitle": "Four steps, one workspace — no ceremony required.",
+      "step": "Step",
+      "steps": [
+        { "title": "Model your work", "body": "Create workspaces per tenant, projects per product, and dynamic states per team. Everything is multi-tenant from day one." },
+        { "title": "Plan the cycle", "body": "Group issues into sprints and cross-cutting modules. Estimates, priorities and dependencies all live on the issue." },
+        { "title": "Execute in flow", "body": "The Kanban is dynamic — states, filters and views adapt. Keyboard shortcuts everywhere so hands stay on the keys." },
+        { "title": "Learn & ship faster", "body": "Burndown, throughput and workload — surfaced honestly. Analytics you'd actually plan a retro around." }
+      ]
+    },
+    "pricing": {
+      "eyebrow": "Pricing",
+      "title": "Straightforward, per-seat pricing",
+      "subtitle": "Start free. Upgrade when your team needs more room to move.",
+      "popular": "Most popular",
+      "free": { "name": "Free", "period": "forever", "desc": "For individuals and prototypes. Everything you need to plan a small project.", "cta": "Start free", "features": ["1 workspace", "Up to 5 members", "Boards, cycles, modules", "Community support"] },
+      "team": { "name": "Team", "period": "per user / month", "desc": "For growing teams that need speed, analytics and unlimited workspaces.", "cta": "Start 14-day trial", "features": ["Unlimited workspaces", "Advanced analytics", "Custom states & workflows", "Priority email support"] },
+      "enterprise": { "name": "Enterprise", "period": "annual", "desc": "For organizations that need SSO, audit logs and a dedicated success manager.", "cta": "Talk to sales", "features": ["SAML SSO & SCIM", "Audit log & retention", "Self-host option", "24/7 support with SLA"] }
+    },
+    "footer": {
+      "tagline": "The agile OS your team actually enjoys. Built with intent.",
+      "copyright": "Plane.app — Built with intent.",
+      "crafted": "Crafted for teams who care about the details.",
+      "product": { "title": "Product", "links": ["Features", "Pricing", "Changelog", "Roadmap"] },
+      "company": { "title": "Company", "links": ["About", "Careers", "Contact", "Press"] },
+      "resources": { "title": "Resources", "links": ["Docs", "Guides", "API", "Status"] },
+      "legal": { "title": "Legal", "links": ["Privacy", "Terms", "Security", "DPA"] }
+    }
+  },
   "common": {
     "loading": "Loading...",
     "retry": "Try again",
