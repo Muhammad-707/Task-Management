@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAppDispatch } from '@/app/hooks'
+import { useToast } from '@/app/providers/ToastProvider'
 import { useMeQuery, useUpdateProfileMutation } from '@/features/auth/authApi'
 import { setUser } from '@/features/auth/authSlice'
 import { Loading } from '@/components/common/Loading'
@@ -9,6 +10,7 @@ import { Loading } from '@/components/common/Loading'
 export default function Profile() {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
+  const { notify } = useToast()
   const { data: user, isLoading } = useMeQuery()
   const [updateProfile, { isLoading: isSaving }] = useUpdateProfileMutation()
 
@@ -33,6 +35,7 @@ export default function Profile() {
       }).unwrap()
       dispatch(setUser(updated))
       setSaved(true)
+      notify(t('profile.saved'), 'success')
     } catch {
       setSaved(false)
     }

@@ -1,14 +1,7 @@
 import { NavLink } from 'react-router-dom'
-import { Building2, LayoutDashboard, Settings, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-
-const navItems = [
-  { to: '/dashboard', icon: LayoutDashboard, labelKey: 'nav.dashboard' },
-  { to: '/workspaces', icon: Building2, labelKey: 'nav.workspaces' },
-  { to: '/profile', icon: User, labelKey: 'nav.profile' },
-  { to: '/settings', icon: Settings, labelKey: 'nav.settings' },
-] as const
+import { navItems } from './navItems'
 
 export function Sidebar() {
   const { t } = useTranslation()

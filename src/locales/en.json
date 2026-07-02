@@ -33,7 +33,8 @@
       "generic": "Request failed. Check your details and try again."
     },
     "dashboard": {
-      "welcome": "Welcome"
+      "welcome": "Welcome",
+      "manage": "Manage"
     }
   },
   "notFound": {
@@ -209,6 +210,30 @@
       "upcoming": "Upcoming",
       "active": "Active",
       "completed": "Completed"
+    }
+  },
+  "modules": {
+    "title": "Modules",
+    "name": "Name",
+    "start": "Start",
+    "target": "Target",
+    "create": "Create",
+    "delete": "Delete",
+    "empty": "No modules yet",
+    "notFound": "Module not found",
+    "lead": "Lead",
+    "noLead": "— None —",
+    "progress": "Progress",
+    "issues": "Module issues",
+    "addIssue": "Add",
+    "removeIssue": "Remove",
+    "issuesHint": "Progress reflects changes. The API does not expose a module's exact issue list.",
+    "statuses": {
+      "backlog": "Backlog",
+      "in_progress": "In progress",
+      "paused": "Paused",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
     }
   }
 }

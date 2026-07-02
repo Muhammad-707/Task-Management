@@ -7,7 +7,7 @@ import {
   useCreateProjectMutation,
   useGetProjectsQuery,
 } from '@/features/projects/projectsApi'
-import { Loading } from '@/components/common/Loading'
+import { SkeletonList } from '@/components/common/Skeleton'
 
 const inputClass =
   'w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring'
@@ -127,7 +127,7 @@ export default function Projects() {
       </form>
 
       {isLoading ? (
-        <Loading />
+        <SkeletonList />
       ) : Array.isArray(projects) && projects.length > 0 ? (
         <ul className="space-y-2">
           {projects.map((project) => (

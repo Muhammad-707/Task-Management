@@ -1,75 +1,65 @@
-# React + TypeScript + Vite
+# TaskFlow
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend (SPA) for a Plane/Jira‑inspired, multi‑tenant task management system.
+It consumes a REST API backend (Workspace → Project → Issue).
 
-Currently, two official plugins are available:
+## Tech stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **React 19 + Vite + TypeScript**
+- **Tailwind CSS v4** with shadcn‑style design tokens (dark / light)
+- **Redux Toolkit + RTK Query** (axios base query)
+- **React Router v7** with lazy loading + Suspense
+- **i18next** — ru / tj / en
+- **axios** with request/response interceptors (Bearer + auto‑refresh)
+- lucide-react, AOS
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- JWT auth: register / login / logout with automatic access‑token refresh
+- `AuthProvider`, `ProtectedRoute`, `ErrorBoundary`, loading skeletons, `NotFound`
+- Workspaces — CRUD + members (owner / admin / member / guest)
+- Projects — CRUD + members (admin / member / viewer)
+- States & Labels — CRUD with colors and status groups
+- Issues — board by status, filters + cursor pagination, create / edit / soft‑delete,
+  assignees, labels, subtasks, priority indication
+- Threaded comments
+- Cycles & Modules with progress
+- Dashboard overview, dark/light theme, i18n, toast notifications, mobile‑responsive layout
 
-## Expanding the ESLint configuration
+## Configuration
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+> ⚠️ The backend base URL is provided **only** through an environment variable —
+> it is never hard‑coded in the source, README, or comments.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Copy `.env.example` to `.env` and set the backend base URL:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```env
+VITE_API_URL=
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- The app appends `/api/v1` to `VITE_API_URL` (unless it already ends with it).
+- In development, API requests go through a Vite dev proxy (`server.proxy`) to avoid CORS.
+- `.env` is git‑ignored; `.env.example` ships with an empty placeholder.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Scripts
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install      # install dependencies
+npm run dev      # start the dev server
+npm run build    # type-check (tsc -b) + production build (vite build)
+npm run preview  # preview the production build
+npm run lint     # run ESLint
+```
 
+## Project structure
+
+```
+src/
+  app/          # store, RTK Query base + baseQuery, providers (Theme/Auth/Toast)
+  components/   # common (Loading, Skeleton, ErrorBoundary) + layout (Header/Sidebar/MobileNav)
+  features/     # auth, workspaces, projects, states, labels, issues, comments, cycles, modules
+  pages/        # lazy-loaded route pages
+  routes/       # router + ProtectedRoute
+  lib/          # axios instance, i18n, utils
+  locales/      # ru.json / tj.json / en.json
 ```

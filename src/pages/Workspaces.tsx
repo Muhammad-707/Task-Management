@@ -6,7 +6,7 @@ import {
   useCreateWorkspaceMutation,
   useGetWorkspacesQuery,
 } from '@/features/workspaces/workspacesApi'
-import { Loading } from '@/components/common/Loading'
+import { SkeletonList } from '@/components/common/Skeleton'
 
 export default function Workspaces() {
   const { t } = useTranslation()
@@ -70,7 +70,7 @@ export default function Workspaces() {
       </form>
 
       {isLoading ? (
-        <Loading />
+        <SkeletonList />
       ) : Array.isArray(workspaces) && workspaces.length > 0 ? (
         <ul className="space-y-2">
           {workspaces.map((ws) => (

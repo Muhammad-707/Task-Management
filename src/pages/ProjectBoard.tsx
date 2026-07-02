@@ -104,6 +104,12 @@ export default function ProjectBoard() {
             {t('cycles.title')}
           </Link>
           <Link
+            to={`/${slug}/projects/${pid}/modules`}
+            className="underline-offset-4 hover:text-foreground hover:underline"
+          >
+            {t('modules.title')}
+          </Link>
+          <Link
             to={`/${slug}/projects/${pid}/settings`}
             className="underline-offset-4 hover:text-foreground hover:underline"
           >

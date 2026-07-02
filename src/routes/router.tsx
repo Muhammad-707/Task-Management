@@ -26,6 +26,8 @@ const ProjectSettings = lazy(() => import('@/pages/ProjectSettings'))
 const IssueDetails = lazy(() => import('@/pages/IssueDetails'))
 const Cycles = lazy(() => import('@/pages/Cycles'))
 const CycleDetails = lazy(() => import('@/pages/CycleDetails'))
+const Modules = lazy(() => import('@/pages/Modules'))
+const ModuleDetails = lazy(() => import('@/pages/ModuleDetails'))
 const Profile = lazy(() => import('@/pages/Profile'))
 const Settings = lazy(() => import('@/pages/Settings'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
@@ -71,6 +73,14 @@ export const router = createBrowserRouter([
           {
             path: '/:workspaceSlug/projects/:projectId/cycles/:cycleId',
             element: withSuspense(CycleDetails),
+          },
+          {
+            path: '/:workspaceSlug/projects/:projectId/modules',
+            element: withSuspense(Modules),
+          },
+          {
+            path: '/:workspaceSlug/projects/:projectId/modules/:moduleId',
+            element: withSuspense(ModuleDetails),
           },
         ],
       },
