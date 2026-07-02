@@ -1,7 +1,37 @@
 {
   "app": {
-    "name": "TaskFlow",
-    "tagline": "Системаи идоракунии вазифаҳо"
+    "name": "Plane",
+    "tagline": "Системаи чаққони идоракунӣ барои дастаи шумо."
+  },
+  "layout": {
+    "createTask": "Сохтани вазифа",
+    "selectWorkspace": "Фазоро интихоб кунед",
+    "noProject": "Лоиҳа нест",
+    "searchWorkspaces": "Ҷустуҷӯи фазоҳо ё лоиҳаҳо...",
+    "workspaces": "Фазоҳо",
+    "projects": "Лоиҳаҳо",
+    "noWorkspaces": "Фазо ёфт нашуд.",
+    "pickWorkspace": "Барои дидани лоиҳаҳо фазоро интихоб кунед.",
+    "newWorkspace": "Фазои нав",
+    "search": "Ҷустуҷӯ...",
+    "collapse": "Печондан",
+    "expand": "Кушодан",
+    "myTasks": "Вазифаҳои ман",
+    "analytics": "Таҳлил",
+    "accountSettings": "Танзимоти ҳисоб"
+  },
+  "notifications": {
+    "title": "Огоҳиномаҳо",
+    "empty": "Ҳама хонда шуд",
+    "emptyHint": "Фаъолияти нав дар фазо дар ин ҷо пайдо мешавад.",
+    "markAllRead": "Ҳамаро хонед",
+    "unread": "нохонда",
+    "selectWorkspace": "Барои дидани огоҳиномаҳо фазоро кушоед.",
+    "types": {
+      "issue_assigned": "ба шумо вазифа таъин кард",
+      "comment_added": "шарҳ гузошт",
+      "mentioned": "шуморо ёдовар шуд"
+    }
   },
   "common": {
     "loading": "Боркунӣ...",
@@ -11,14 +41,20 @@
     "getStarted": "Оғоз"
   },
   "auth": {
+    "signIn": "Воридшавӣ",
+    "signUp": "Бақайдгирӣ",
     "login": {
       "title": "Воридшавӣ",
+      "welcome": "Хуш баргаштед",
+      "subtitle": "Барои идома ворид шавед.",
       "submit": "Ворид шудан",
       "noAccount": "Ҳисоб надоред?",
       "toRegister": "Бақайдгирӣ"
     },
     "register": {
       "title": "Бақайдгирӣ",
+      "welcome": "Ҳисоб созед",
+      "subtitle": "Фазоро дар камтар аз як дақиқа оғоз кунед.",
       "submit": "Сохтани ҳисоб",
       "hasAccount": "Аллакай ҳисоб доред?",
       "toLogin": "Ворид шудан"
@@ -26,15 +62,33 @@
     "fields": {
       "email": "Email",
       "password": "Гузарвожа",
-      "displayName": "Ном"
+      "displayName": "Номи намоишӣ"
     },
+    "placeholders": {
+      "email": "you@team.com",
+      "displayName": "Ада Лавлейс",
+      "password": "Ҳадди ақал 8 аломат"
+    },
+    "remember": "Маро дар ин дастгоҳ дар хотир доред",
+    "terms": "Бо бақайдгирӣ шумо шартҳо ва сиёсати махфиятро қабул мекунед.",
+    "showPassword": "Намоиши гузарвожа",
+    "hidePassword": "Пинҳон кардани гузарвожа",
     "logout": "Баромадан",
     "errors": {
       "generic": "Дархост иҷро нашуд. Маълумотро тафтиш карда, бори дигар кӯшиш кунед."
     },
     "dashboard": {
       "welcome": "Хуш омадед",
-      "manage": "Идоракунӣ"
+      "manage": "Идоракунӣ",
+      "greeting": "Дидани шумо хуш аст,",
+      "subtitle": "Шарҳи мухтасари он чи дар фазоҳои шумо мегузарад.",
+      "waiting": "Интизори маълумоти фазо",
+      "stats": {
+        "total": "Ҳамаи вазифаҳо",
+        "inProgress": "Дар кор",
+        "completed": "Анҷомёфта",
+        "overdue": "Мӯҳлаташ гузашта"
+      }
     }
   },
   "notFound": {
@@ -85,7 +139,12 @@
       "role": "Нақш",
       "add": "Илова кардан",
       "remove": "Нест кардан",
-      "empty": "Ҳоло иштирокчӣ нест"
+      "empty": "Ҳоло иштирокчӣ нест",
+      "invite": "Даъват тавассути email",
+      "inviteAction": "Фиристодани даъват",
+      "emailPlaceholder": "teammate@team.com",
+      "invited": "Даъватнома фиристода шуд",
+      "you": "Шумо"
     },
     "roles": {
       "owner": "Соҳиб",
@@ -169,6 +228,32 @@
     "subtaskTitle": "Номи зервазифа",
     "addSubtask": "Илова кардан",
     "noSubtasks": "Ҳоло зервазифа нест",
+    "attachments": {
+      "title": "Замимаҳо",
+      "add": "Боркунии файл",
+      "empty": "Ҳоло замима нест",
+      "download": "Боргирӣ",
+      "delete": "Нест кардан",
+      "uploading": "Боркунӣ...",
+      "failed": "Боркунӣ нашуд"
+    },
+    "relations": {
+      "title": "Алоқаҳо",
+      "empty": "Вазифаҳои алоқаманд нест",
+      "add": "Пайвасти вазифа",
+      "targetPlaceholder": "ID-и вазифаи алоқаманд",
+      "blocks": "Манъ мекунад",
+      "blocked_by": "Манъ шуда",
+      "relates_to": "Алоқаманд бо",
+      "duplicates": "Такрор мекунад"
+    },
+    "activity": {
+      "title": "Таърих",
+      "empty": "Ҳоло фаъолият нест",
+      "changed": "тағйир дод",
+      "from": "аз",
+      "to": "ба"
+    },
     "priorities": {
       "none": "Нест",
       "low": "Паст",

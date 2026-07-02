@@ -94,6 +94,19 @@ export const workspacesApi = baseApi.injectEndpoints({
         { type: 'WorkspaceMember', id: slug },
       ],
     }),
+    inviteWorkspaceMember: builder.mutation<
+      unknown,
+      { slug: string; body: AddWorkspaceMemberRequest }
+    >({
+      query: ({ slug, body }) => ({
+        url: `/workspaces/${slug}/members/invite`,
+        method: 'POST',
+        data: body,
+      }),
+      invalidatesTags: (_result, _error, { slug }) => [
+        { type: 'WorkspaceMember', id: slug },
+      ],
+    }),
   }),
 })
 
@@ -107,4 +120,5 @@ export const {
   useAddWorkspaceMemberMutation,
   useUpdateWorkspaceMemberMutation,
   useRemoveWorkspaceMemberMutation,
+  useInviteWorkspaceMemberMutation,
 } = workspacesApi

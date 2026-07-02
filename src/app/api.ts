@@ -18,6 +18,10 @@ export const baseApi = createApi({
     'Comment',
     'Cycle',
     'Module',
+    'Notification',
+    'Attachment',
+    'Activity',
+    'Relation',
   ],
   endpoints: () => ({}),
 })

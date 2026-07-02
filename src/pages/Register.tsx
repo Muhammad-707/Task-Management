@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAppDispatch } from '@/app/hooks'
 import { useRegisterMutation } from '@/features/auth/authApi'
 import { setCredentials } from '@/features/auth/authSlice'
+import { AuthShell } from '@/components/auth/AuthShell'
+import { PasswordInput } from '@/components/auth/PasswordInput'
+import { Button, Field, Input } from '@/components/ui'
 
 export default function Register() {
   const { t } = useTranslation()
@@ -34,74 +37,59 @@ export default function Register() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 text-foreground">
-      <form
-        onSubmit={onSubmit}
-        className="w-full max-w-sm space-y-4 rounded-lg border border-border p-6"
-      >
-        <h1 className="text-2xl font-bold">{t('auth.register.title')}</h1>
-
+    <AuthShell
+      mode="register"
+      title={t('auth.register.welcome')}
+      subtitle={t('auth.register.subtitle')}
+      footer={t('auth.terms')}
+    >
+      <form onSubmit={onSubmit} className="space-y-5">
         {hasError && (
-          <p className="text-sm text-destructive">{t('auth.errors.generic')}</p>
+          <p className="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {t('auth.errors.generic')}
+          </p>
         )}
 
-        <div className="space-y-2">
-          <label htmlFor="displayName" className="text-sm font-medium">
-            {t('auth.fields.displayName')}
-          </label>
-          <input
+        <Field label={t('auth.fields.displayName')} htmlFor="displayName">
+          <Input
             id="displayName"
             type="text"
             required
+            autoComplete="name"
+            placeholder={t('auth.placeholders.displayName')}
             value={displayName}
-            onChange={(event) => setDisplayName(event.target.value)}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+            onChange={(e) => setDisplayName(e.target.value)}
           />
-        </div>
+        </Field>
 
-        <div className="space-y-2">
-          <label htmlFor="email" className="text-sm font-medium">
-            {t('auth.fields.email')}
-          </label>
-          <input
+        <Field label={t('auth.fields.email')} htmlFor="email">
+          <Input
             id="email"
             type="email"
             required
+            autoComplete="email"
+            placeholder={t('auth.placeholders.email')}
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+            onChange={(e) => setEmail(e.target.value)}
           />
-        </div>
+        </Field>
 
-        <div className="space-y-2">
-          <label htmlFor="password" className="text-sm font-medium">
-            {t('auth.fields.password')}
-          </label>
-          <input
+        <Field label={t('auth.fields.password')} htmlFor="password">
+          <PasswordInput
             id="password"
-            type="password"
             required
+            minLength={8}
+            autoComplete="new-password"
+            placeholder={t('auth.placeholders.password')}
             value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+            onChange={(e) => setPassword(e.target.value)}
           />
-        </div>
+        </Field>
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
-        >
+        <Button type="submit" size="lg" loading={isLoading} className="w-full">
           {t('auth.register.submit')}
-        </button>
-
-        <p className="text-center text-sm text-muted-foreground">
-          {t('auth.register.hasAccount')}{' '}
-          <Link to="/login" className="text-foreground underline">
-            {t('auth.register.toLogin')}
-          </Link>
-        </p>
+        </Button>
       </form>
-    </div>
+    </AuthShell>
   )
 }

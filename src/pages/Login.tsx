@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAppDispatch } from '@/app/hooks'
 import { useLoginMutation } from '@/features/auth/authApi'
 import { setCredentials } from '@/features/auth/authSlice'
+import { AuthShell } from '@/components/auth/AuthShell'
+import { PasswordInput } from '@/components/auth/PasswordInput'
+import { Button, Field, Input } from '@/components/ui'
 
 export default function Login() {
   const { t } = useTranslation()
@@ -14,6 +17,7 @@ export default function Login() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [remember, setRemember] = useState(true)
   const [hasError, setHasError] = useState(false)
 
   const onSubmit = async (event: FormEvent) => {
@@ -29,60 +33,55 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 text-foreground">
-      <form
-        onSubmit={onSubmit}
-        className="w-full max-w-sm space-y-4 rounded-lg border border-border p-6"
-      >
-        <h1 className="text-2xl font-bold">{t('auth.login.title')}</h1>
-
+    <AuthShell
+      mode="login"
+      title={t('auth.login.welcome')}
+      subtitle={t('auth.login.subtitle')}
+    >
+      <form onSubmit={onSubmit} className="space-y-5">
         {hasError && (
-          <p className="text-sm text-destructive">{t('auth.errors.generic')}</p>
+          <p className="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {t('auth.errors.generic')}
+          </p>
         )}
 
-        <div className="space-y-2">
-          <label htmlFor="email" className="text-sm font-medium">
-            {t('auth.fields.email')}
-          </label>
-          <input
+        <Field label={t('auth.fields.email')} htmlFor="email">
+          <Input
             id="email"
             type="email"
             required
+            autoComplete="email"
+            placeholder={t('auth.placeholders.email')}
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+            onChange={(e) => setEmail(e.target.value)}
           />
-        </div>
+        </Field>
 
-        <div className="space-y-2">
-          <label htmlFor="password" className="text-sm font-medium">
-            {t('auth.fields.password')}
-          </label>
-          <input
+        <Field label={t('auth.fields.password')} htmlFor="password">
+          <PasswordInput
             id="password"
-            type="password"
             required
+            autoComplete="current-password"
+            placeholder={t('auth.placeholders.password')}
             value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+            onChange={(e) => setPassword(e.target.value)}
           />
-        </div>
+        </Field>
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
-        >
+        <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground">
+          <input
+            type="checkbox"
+            checked={remember}
+            onChange={(e) => setRemember(e.target.checked)}
+            className="h-4 w-4 rounded border-border accent-[var(--color-primary)]"
+          />
+          {t('auth.remember')}
+        </label>
+
+        <Button type="submit" size="lg" loading={isLoading} className="w-full">
           {t('auth.login.submit')}
-        </button>
-
-        <p className="text-center text-sm text-muted-foreground">
-          {t('auth.login.noAccount')}{' '}
-          <Link to="/register" className="text-foreground underline">
-            {t('auth.login.toRegister')}
-          </Link>
-        </p>
+        </Button>
       </form>
-    </div>
+    </AuthShell>
   )
 }

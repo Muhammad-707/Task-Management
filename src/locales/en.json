@@ -1,7 +1,37 @@
 {
   "app": {
-    "name": "TaskFlow",
-    "tagline": "Task Management System"
+    "name": "Plane",
+    "tagline": "The agile OS your team actually enjoys."
+  },
+  "layout": {
+    "createTask": "Create task",
+    "selectWorkspace": "Select workspace",
+    "noProject": "No project",
+    "searchWorkspaces": "Search workspaces or projects...",
+    "workspaces": "Workspaces",
+    "projects": "Projects",
+    "noWorkspaces": "No workspaces found.",
+    "pickWorkspace": "Pick a workspace to see projects.",
+    "newWorkspace": "New workspace",
+    "search": "Search...",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "myTasks": "My Tasks",
+    "analytics": "Analytics",
+    "accountSettings": "Account settings"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "You're all caught up",
+    "emptyHint": "New activity in your workspace will show up here.",
+    "markAllRead": "Mark all read",
+    "unread": "unread",
+    "selectWorkspace": "Open a workspace to see notifications.",
+    "types": {
+      "issue_assigned": "assigned you an issue",
+      "comment_added": "left a comment",
+      "mentioned": "mentioned you"
+    }
   },
   "common": {
     "loading": "Loading...",
@@ -11,14 +41,20 @@
     "getStarted": "Get started"
   },
   "auth": {
+    "signIn": "Sign in",
+    "signUp": "Sign up",
     "login": {
       "title": "Sign in",
+      "welcome": "Welcome back",
+      "subtitle": "Sign in to continue to your workspace.",
       "submit": "Sign in",
       "noAccount": "No account?",
       "toRegister": "Sign up"
     },
     "register": {
       "title": "Sign up",
+      "welcome": "Create your account",
+      "subtitle": "Spin up a workspace in under a minute.",
       "submit": "Create account",
       "hasAccount": "Already have an account?",
       "toLogin": "Sign in"
@@ -26,15 +62,33 @@
     "fields": {
       "email": "Email",
       "password": "Password",
-      "displayName": "Name"
+      "displayName": "Display name"
     },
-    "logout": "Log out",
+    "placeholders": {
+      "email": "you@team.com",
+      "displayName": "Ada Lovelace",
+      "password": "At least 8 characters"
+    },
+    "remember": "Remember me on this device",
+    "terms": "By signing up you agree to our terms and privacy policy.",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "logout": "Sign out",
     "errors": {
       "generic": "Request failed. Check your details and try again."
     },
     "dashboard": {
       "welcome": "Welcome",
-      "manage": "Manage"
+      "manage": "Manage",
+      "greeting": "Good to see you,",
+      "subtitle": "Here's a snapshot of what's happening across your workspaces.",
+      "waiting": "Waiting for workspace data",
+      "stats": {
+        "total": "Total tasks",
+        "inProgress": "In progress",
+        "completed": "Completed",
+        "overdue": "Overdue"
+      }
     }
   },
   "notFound": {
@@ -85,7 +139,12 @@
       "role": "Role",
       "add": "Add",
       "remove": "Remove",
-      "empty": "No members yet"
+      "empty": "No members yet",
+      "invite": "Invite by email",
+      "inviteAction": "Send invite",
+      "emailPlaceholder": "teammate@team.com",
+      "invited": "Invitation sent",
+      "you": "You"
     },
     "roles": {
       "owner": "Owner",
@@ -169,6 +228,32 @@
     "subtaskTitle": "Subtask title",
     "addSubtask": "Add",
     "noSubtasks": "No subtasks yet",
+    "attachments": {
+      "title": "Attachments",
+      "add": "Upload file",
+      "empty": "No attachments yet",
+      "download": "Download",
+      "delete": "Delete",
+      "uploading": "Uploading...",
+      "failed": "Upload failed"
+    },
+    "relations": {
+      "title": "Relations",
+      "empty": "No linked issues",
+      "add": "Link issue",
+      "targetPlaceholder": "Related issue ID",
+      "blocks": "Blocks",
+      "blocked_by": "Blocked by",
+      "relates_to": "Relates to",
+      "duplicates": "Duplicates"
+    },
+    "activity": {
+      "title": "Activity",
+      "empty": "No activity yet",
+      "changed": "changed",
+      "from": "from",
+      "to": "to"
+    },
     "priorities": {
       "none": "None",
       "low": "Low",

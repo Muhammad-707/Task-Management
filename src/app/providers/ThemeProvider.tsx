@@ -17,9 +17,8 @@ function getInitialTheme(): Theme {
   if (stored === 'light' || stored === 'dark') {
     return stored
   }
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
-    ? 'dark'
-    : 'light'
+  // Dark-first design — default to dark unless the user opts into light.
+  return 'dark'
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
