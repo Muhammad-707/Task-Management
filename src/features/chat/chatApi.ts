@@ -1,6 +1,7 @@
 import { baseApi } from '@/app/api'
 import {
   normalizeConversation,
+  type ChatUser,
   type Contact,
   type ContactRequest,
   type ContactRequestDirection,
@@ -8,6 +9,16 @@ import {
   type Message,
   type MessagesPage,
 } from './types'
+
+// Presigned chat attachment (POST /conversations/{id}/attachments).
+export interface ChatAttachment {
+  id: string
+  file_name: string
+  file_size: number
+  mime_type: string
+  upload_url?: string | null
+  download_url?: string | null
+}
 
 export const chatApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -46,6 +57,12 @@ export const chatApi = baseApi.injectEndpoints({
     declineContactRequest: builder.mutation<ContactRequest, string>({
       query: (id) => ({ url: `/contacts/requests/${id}/decline`, method: 'POST' }),
       invalidatesTags: [{ type: 'ContactRequest', id: 'incoming' }],
+    }),
+    // Search the whole user directory by name/email to add a contact (GET /contacts/search?q=).
+    searchContacts: builder.query<ChatUser[], string>({
+      query: (q) => ({ url: '/contacts/search', method: 'GET', params: { q } }),
+      transformResponse: (res: ChatUser[] | { data: ChatUser[] }) =>
+        Array.isArray(res) ? res : (res.data ?? []),
     }),
 
     // --- Conversations --------------------------------------------------
@@ -102,6 +119,45 @@ export const chatApi = baseApi.injectEndpoints({
         { type: 'Conversation', id: conversationId },
       ],
     }),
+    // Rename a group conversation (PATCH /conversations/{id}).
+    renameConversation: builder.mutation<
+      Conversation,
+      { conversationId: string; name: string }
+    >({
+      query: ({ conversationId, name }) => ({
+        url: `/conversations/${conversationId}`,
+        method: 'PATCH',
+        data: { name },
+      }),
+      transformResponse: normalizeConversation,
+      invalidatesTags: (_r, _e, { conversationId }) => [
+        { type: 'Conversation', id: conversationId },
+        { type: 'Conversation', id: 'LIST' },
+      ],
+    }),
+    // Delete a conversation, or leave a group (DELETE /conversations/{id}).
+    deleteConversation: builder.mutation<void, string>({
+      query: (conversationId) => ({
+        url: `/conversations/${conversationId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: [{ type: 'Conversation', id: 'LIST' }],
+    }),
+    // Register a chat attachment and get a presigned upload URL
+    // (POST /conversations/{id}/attachments).
+    createChatAttachment: builder.mutation<
+      ChatAttachment,
+      {
+        conversationId: string
+        body: { file_name: string; file_size: number; mime_type: string }
+      }
+    >({
+      query: ({ conversationId, body }) => ({
+        url: `/conversations/${conversationId}/attachments`,
+        method: 'POST',
+        data: body,
+      }),
+    }),
 
     // --- Messages -------------------------------------------------------
     getMessages: builder.query<
@@ -133,6 +189,55 @@ export const chatApi = baseApi.injectEndpoints({
         { type: 'Conversation', id: 'LIST' },
       ],
     }),
+    // Edit a message you sent (PATCH .../messages/{messageId}).
+    editMessage: builder.mutation<
+      Message,
+      { conversationId: string; messageId: string; body: string }
+    >({
+      query: ({ conversationId, messageId, body }) => ({
+        url: `/conversations/${conversationId}/messages/${messageId}`,
+        method: 'PATCH',
+        data: { body },
+      }),
+      invalidatesTags: (_r, _e, { conversationId }) => [
+        { type: 'Message', id: conversationId },
+        { type: 'Conversation', id: 'LIST' },
+      ],
+    }),
+    // Delete a message you sent (DELETE .../messages/{messageId}).
+    deleteMessage: builder.mutation<
+      void,
+      { conversationId: string; messageId: string }
+    >({
+      query: ({ conversationId, messageId }) => ({
+        url: `/conversations/${conversationId}/messages/${messageId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_r, _e, { conversationId }) => [
+        { type: 'Message', id: conversationId },
+        { type: 'Conversation', id: 'LIST' },
+      ],
+    }),
+    // The set of quick-reaction emojis (GET /conversations/reactions/emojis).
+    getReactionEmojis: builder.query<string[], void>({
+      query: () => ({ url: '/conversations/reactions/emojis', method: 'GET' }),
+      transformResponse: (res: { emojis?: string[] } | string[]) =>
+        Array.isArray(res) ? res : (res.emojis ?? []),
+    }),
+    // Toggle an emoji reaction on a message (POST .../messages/{messageId}/reactions).
+    toggleReaction: builder.mutation<
+      unknown,
+      { conversationId: string; messageId: string; emoji: string }
+    >({
+      query: ({ conversationId, messageId, emoji }) => ({
+        url: `/conversations/${conversationId}/messages/${messageId}/reactions`,
+        method: 'POST',
+        data: { emoji },
+      }),
+      invalidatesTags: (_r, _e, { conversationId }) => [
+        { type: 'Message', id: conversationId },
+      ],
+    }),
   }),
 })
 
@@ -142,11 +247,20 @@ export const {
   useSendContactRequestMutation,
   useAcceptContactRequestMutation,
   useDeclineContactRequestMutation,
+  useSearchContactsQuery,
+  useLazySearchContactsQuery,
   useGetConversationsQuery,
   useGetConversationQuery,
   useOpenDirectConversationMutation,
   useCreateWorkspaceConversationMutation,
   useAddConversationMemberMutation,
+  useRenameConversationMutation,
+  useDeleteConversationMutation,
+  useCreateChatAttachmentMutation,
   useGetMessagesQuery,
   useSendMessageMutation,
+  useEditMessageMutation,
+  useDeleteMessageMutation,
+  useGetReactionEmojisQuery,
+  useToggleReactionMutation,
 } = chatApi

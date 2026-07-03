@@ -31,6 +31,15 @@ export interface Contact {
 
 export type ConversationType = 'direct' | 'group'
 
+// A single emoji reaction bucket on a message (shape captured from the live API;
+// tolerant to either an aggregated count or a raw list of reactor ids).
+export interface MessageReaction {
+  emoji: string
+  count?: number
+  user_ids?: string[]
+  reacted?: boolean
+}
+
 export interface Message {
   id: string
   conversation_id: string
@@ -38,6 +47,15 @@ export interface Message {
   body: string
   created_at: string
   sender: ChatUser
+  edited_at?: string | null
+  reactions?: MessageReaction[]
+  // Chat attachments (presigned) may ride along on a message.
+  attachments?: {
+    id: string
+    file_name: string
+    mime_type: string
+    download_url?: string | null
+  }[]
 }
 
 export interface Conversation {

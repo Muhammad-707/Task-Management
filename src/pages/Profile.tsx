@@ -11,6 +11,8 @@ import {
   Image as ImageIcon,
   LogOut,
   Mail,
+  RotateCcw,
+  Save,
   Shield,
   Sparkles,
   Trash2,
@@ -61,27 +63,44 @@ export default function Profile() {
   const [updateProfile, { isLoading: isSaving }] = useUpdateProfileMutation()
   const logout = useLogout()
 
+  // Draft state — editing these only previews the change. Nothing is persisted
+  // until the user hits Save (see onSubmit), which is what the button promises.
   const [displayName, setDisplayName] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
   const [coverUrl, setCoverUrl] = useState('')
+  // The last-saved values, used to detect unsaved changes and to reset.
+  const [saved, setSaved] = useState({ displayName: '', avatarUrl: '', coverUrl: '' })
 
   const avatarFileRef = useRef<HTMLInputElement>(null)
   const coverFileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (user) {
-      setDisplayName(user.display_name)
-      try {
-        // Prefer a locally saved avatar (survives reload even before hitting Save).
-        setAvatarUrl(localStorage.getItem(avatarKey(user.id)) ?? user.avatar_url ?? '')
-        setCoverUrl(localStorage.getItem(coverKey(user.id)) ?? '')
-      } catch {
-        setAvatarUrl(user.avatar_url ?? '')
-      }
+    if (!user) return
+    let cover = ''
+    let avatar = user.avatar_url ?? ''
+    try {
+      // Prefer a locally saved image (backend has no banner field, and the
+      // avatar data-URL from an upload also lives here).
+      avatar = localStorage.getItem(avatarKey(user.id)) ?? avatar
+      cover = localStorage.getItem(coverKey(user.id)) ?? ''
+    } catch {
+      /* ignore */
     }
+    setDisplayName(user.display_name)
+    setAvatarUrl(avatar)
+    setCoverUrl(cover)
+    setSaved({ displayName: user.display_name, avatarUrl: avatar, coverUrl: cover })
   }, [user])
 
-  // Persist to localStorage the moment it changes, so a reload never loses it.
+  // These now only touch the draft — persistence happens on Save.
+  const saveCover = (url: string) => setCoverUrl(url)
+  const saveAvatar = (url: string) => setAvatarUrl(url)
+
+  const dirty =
+    displayName !== saved.displayName ||
+    avatarUrl !== saved.avatarUrl ||
+    coverUrl !== saved.coverUrl
+
   const persist = (key: string, url: string) => {
     try {
       if (url) localStorage.setItem(key, url)
@@ -90,23 +109,29 @@ export default function Profile() {
       /* ignore */
     }
   }
-  const saveCover = (url: string) => {
-    setCoverUrl(url)
-    persist(coverKey(user?.id), url)
-  }
-  const saveAvatar = (url: string) => {
-    setAvatarUrl(url)
-    persist(avatarKey(user?.id), url)
+
+  const resetDraft = () => {
+    setDisplayName(saved.displayName)
+    setAvatarUrl(saved.avatarUrl)
+    setCoverUrl(saved.coverUrl)
   }
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault()
+    if (!dirty) return
     try {
+      // avatar_url is a plain string on the backend; data-URL uploads are too
+      // large to send, so those persist locally and we don't push them to the API.
+      const remoteAvatar = avatarUrl.startsWith('data:') ? saved.avatarUrl : avatarUrl
       const updated = await updateProfile({
         display_name: displayName,
-        avatar_url: avatarUrl || null,
+        avatar_url: (remoteAvatar.startsWith('data:') ? null : remoteAvatar) || null,
       }).unwrap()
+      // Persist images locally so they survive reloads (banner has no API field).
+      persist(avatarKey(user?.id), avatarUrl)
+      persist(coverKey(user?.id), coverUrl)
       dispatch(setUser(updated))
+      setSaved({ displayName, avatarUrl, coverUrl })
       notify(t('profile.saved'), 'success')
     } catch {
       // handled by global toast
@@ -139,6 +164,23 @@ export default function Profile() {
           {t('settings.signOut')}
         </Button>
       </div>
+
+      {/* Sticky prompt so Save is always reachable while editing images/fields. */}
+      {dirty && (
+        <div className="sticky top-2 z-20 flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 backdrop-blur-md shadow-lg animate-in fade-in slide-in-from-top-2">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/20 text-primary">
+            <Save className="h-4 w-4" />
+          </span>
+          <p className="min-w-0 flex-1 text-sm font-medium">{t('profile.unsavedHint')}</p>
+          <Button type="button" variant="ghost" size="sm" onClick={resetDraft}>
+            {t('profile.reset')}
+          </Button>
+          <Button type="submit" form="profile-form" size="sm" loading={isSaving}>
+            <Save className="h-4 w-4" />
+            {t('profile.save')}
+          </Button>
+        </div>
+      )}
 
       {/* Hero header: cover image (or gradient) + live avatar preview */}
       <Card className="overflow-hidden p-0">
@@ -240,7 +282,7 @@ export default function Profile() {
       {/* Edit form */}
       <Card className="p-6">
         <h2 className="mb-5 text-lg font-semibold">{t('profile.editTitle')}</h2>
-        <form onSubmit={onSubmit} className="space-y-6">
+        <form id="profile-form" onSubmit={onSubmit} className="space-y-6">
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label={t('auth.fields.displayName')} htmlFor="displayName">
               <Input
@@ -338,12 +380,19 @@ export default function Profile() {
           </div>
 
           <div className="flex items-center gap-3 border-t border-border pt-5">
-            <Button type="submit" loading={isSaving}>
+            <Button type="submit" loading={isSaving} disabled={!dirty}>
+              <Save className="h-4 w-4" />
               {t('profile.save')}
             </Button>
-            <Link to="/settings" className="text-sm text-muted-foreground hover:text-foreground">
-              {t('nav.settings')}
-            </Link>
+            {dirty && (
+              <Button type="button" variant="ghost" onClick={resetDraft}>
+                <RotateCcw className="h-4 w-4" />
+                {t('profile.reset')}
+              </Button>
+            )}
+            <span className="ml-auto text-sm text-muted-foreground">
+              {dirty ? t('profile.unsaved') : t('profile.allSaved')}
+            </span>
           </div>
         </form>
       </Card>
