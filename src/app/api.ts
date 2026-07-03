@@ -22,6 +22,11 @@ export const baseApi = createApi({
     'Attachment',
     'Activity',
     'Relation',
+    'Invite',
+    'Contact',
+    'ContactRequest',
+    'Conversation',
+    'Message',
   ],
   endpoints: () => ({}),
 })

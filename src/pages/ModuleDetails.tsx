@@ -63,7 +63,7 @@ export default function ModuleDetails() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
+    <div className="space-y-8">
       <div>
         <Link
           to={`/${slug}/projects/${pid}/modules`}

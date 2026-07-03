@@ -42,7 +42,7 @@ export default function Projects() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">{t('projects.title')}</h1>
         <Link
@@ -103,7 +103,7 @@ export default function Projects() {
       {isLoading ? (
         <SkeletonList />
       ) : Array.isArray(projects) && projects.length > 0 ? (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {projects.map((project) => (
             <Link key={project.id} to={`/${slug}/projects/${project.id}`}>
               <Card hover className="flex items-center gap-3 p-4">

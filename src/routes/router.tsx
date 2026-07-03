@@ -29,6 +29,7 @@ const Cycles = lazy(() => import('@/pages/Cycles'))
 const CycleDetails = lazy(() => import('@/pages/CycleDetails'))
 const Modules = lazy(() => import('@/pages/Modules'))
 const ModuleDetails = lazy(() => import('@/pages/ModuleDetails'))
+const Messages = lazy(() => import('@/pages/Messages'))
 const Profile = lazy(() => import('@/pages/Profile'))
 const Settings = lazy(() => import('@/pages/Settings'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
@@ -45,6 +46,7 @@ export const router = createBrowserRouter([
         children: [
           { path: '/dashboard', element: withSuspense(Dashboard) },
           { path: '/workspaces', element: withSuspense(Workspaces) },
+          { path: '/messages', element: withSuspense(Messages) },
           { path: '/profile', element: withSuspense(Profile) },
           { path: '/settings', element: withSuspense(Settings) },
           {
