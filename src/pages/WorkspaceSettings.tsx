@@ -2,25 +2,35 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Mail, Trash2, UserPlus } from 'lucide-react'
+import { Copy, Link2, Mail, Trash2, UserPlus } from 'lucide-react'
 import {
   useAddWorkspaceMemberMutation,
   useDeleteWorkspaceMutation,
   useGetWorkspaceMembersQuery,
   useGetWorkspaceQuery,
-  useInviteWorkspaceMemberMutation,
   useRemoveWorkspaceMemberMutation,
   useUpdateWorkspaceMemberMutation,
   useUpdateWorkspaceMutation,
 } from '@/features/workspaces/workspacesApi'
+import {
+  useCreateInviteMutation,
+  useGetInvitesQuery,
+  useRevokeInviteMutation,
+} from '@/features/invites/invitesApi'
+import type { InviteRole } from '@/features/invites/types'
 import type { WorkspaceRole } from '@/features/workspaces/types'
+import { useToast } from '@/app/providers/ToastProvider'
 import { Loading } from '@/components/common/Loading'
-import { Avatar, Button, Card, Field, Input, Select } from '@/components/ui'
+import { Avatar, Badge, Button, Card, Field, Input, Select } from '@/components/ui'
+import { formatDate } from '@/lib/datetime'
+import { cn } from '@/lib/utils'
 
 const ROLES: WorkspaceRole[] = ['owner', 'admin', 'member', 'guest']
+const INVITE_ROLES: InviteRole[] = ['admin', 'member', 'guest']
 
 export default function WorkspaceSettings() {
   const { t } = useTranslation()
+  const { notify } = useToast()
   const navigate = useNavigate()
   const { workspaceSlug } = useParams()
   const slug = workspaceSlug ?? ''
@@ -29,18 +39,20 @@ export default function WorkspaceSettings() {
   const { data: members, isLoading: loadingMembers } = useGetWorkspaceMembersQuery(slug, {
     skip: !slug,
   })
+  const { data: invites } = useGetInvitesQuery(slug, { skip: !slug })
 
   const [updateWorkspace, { isLoading: isSaving }] = useUpdateWorkspaceMutation()
   const [deleteWorkspace] = useDeleteWorkspaceMutation()
   const [addMember, { isLoading: isAdding }] = useAddWorkspaceMemberMutation()
-  const [inviteMember, { isLoading: isInviting }] = useInviteWorkspaceMemberMutation()
+  const [createInvite, { isLoading: isInviting }] = useCreateInviteMutation()
+  const [revokeInvite] = useRevokeInviteMutation()
   const [updateMember] = useUpdateWorkspaceMemberMutation()
   const [removeMember] = useRemoveWorkspaceMemberMutation()
 
   const [name, setName] = useState('')
   const [nextSlug, setNextSlug] = useState('')
   const [email, setEmail] = useState('')
-  const [role, setRole] = useState<WorkspaceRole>('member')
+  const [role, setRole] = useState<InviteRole>('member')
   const [invited, setInvited] = useState(false)
 
   useEffect(() => {
@@ -76,9 +88,9 @@ export default function WorkspaceSettings() {
     event.preventDefault()
     setInvited(false)
     try {
-      // Prefer the email invite endpoint; fall back to direct add.
+      // Prefer the magic-link invite endpoint; fall back to a direct add.
       try {
-        await inviteMember({ slug, body: { email, role } }).unwrap()
+        await createInvite({ slug, body: { email, role } }).unwrap()
       } catch {
         await addMember({ slug, body: { email, role } }).unwrap()
       }
@@ -90,8 +102,17 @@ export default function WorkspaceSettings() {
     }
   }
 
+  const onCopyLink = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url)
+      notify(t('workspaces.invites.copied'), 'success')
+    } catch {
+      notify(url, 'info')
+    }
+  }
+
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
+    <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">{workspace.name}</h1>
         <p className="mt-1 text-sm text-muted-foreground">/{workspace.slug}</p>
@@ -147,9 +168,9 @@ export default function WorkspaceSettings() {
               <Select
                 id="member-role"
                 value={role}
-                onChange={(e) => setRole(e.target.value as WorkspaceRole)}
+                onChange={(e) => setRole(e.target.value as InviteRole)}
               >
-                {ROLES.map((value) => (
+                {INVITE_ROLES.map((value) => (
                   <option key={value} value={value}>
                     {t(`workspaces.roles.${value}`)}
                   </option>
@@ -163,6 +184,55 @@ export default function WorkspaceSettings() {
           </form>
           {invited && (
             <p className="mt-2 text-sm text-emerald-400">{t('workspaces.members.invited')}</p>
+          )}
+
+          {invites && invites.length > 0 && (
+            <div className="mt-5 border-t border-border pt-4">
+              <p className="mb-3 flex items-center gap-2 text-sm font-medium">
+                <Link2 className="h-4 w-4 text-muted-foreground" />
+                {t('workspaces.invites.pending')}
+              </p>
+              <ul className="space-y-2">
+                {invites.map((inv) => (
+                  <li
+                    key={inv.id}
+                    className="flex flex-wrap items-center gap-3 rounded-xl border border-border p-3"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{inv.email}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {t(`workspaces.roles.${inv.role}`)} · {t('workspaces.invites.expires')}{' '}
+                        {formatDate(inv.expires_at)}
+                      </p>
+                    </div>
+                    <Badge
+                      className={cn(
+                        'shrink-0',
+                        inv.status === 'pending' && 'text-primary',
+                      )}
+                    >
+                      {t(`workspaces.invites.status.${inv.status}`)}
+                    </Badge>
+                    <button
+                      type="button"
+                      onClick={() => void onCopyLink(inv.accept_url)}
+                      className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      title={t('workspaces.invites.copyLink')}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void revokeInvite({ slug, inviteId: inv.id })}
+                      className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                      title={t('workspaces.invites.revoke')}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </Card>
 

@@ -30,7 +30,7 @@ export default function Workspaces() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
+    <div className="space-y-8">
       <h1 className="text-2xl font-bold tracking-tight">{t('workspaces.title')}</h1>
 
       <Card className="p-6">
@@ -51,7 +51,7 @@ export default function Workspaces() {
       {isLoading ? (
         <SkeletonList />
       ) : Array.isArray(workspaces) && workspaces.length > 0 ? (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {workspaces.map((ws) => (
             <Link key={ws.id} to={`/${ws.slug}/projects`}>
               <Card hover className="flex items-center gap-3 p-4">

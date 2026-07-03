@@ -104,7 +104,7 @@ export default function ProjectSettings() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-10">
+    <div className="space-y-10">
       <section className="space-y-4">
         <h1 className="text-2xl font-bold">{project.name}</h1>
         <form

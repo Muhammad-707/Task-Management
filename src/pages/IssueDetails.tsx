@@ -101,7 +101,8 @@ export default function IssueDetails() {
         description: description || null,
         state_id: stateId,
         priority,
-        due_date: dueDate || null,
+        // The backend requires a full ISO datetime; the date input yields YYYY-MM-DD.
+        due_date: dueDate ? new Date(dueDate).toISOString() : null,
         estimate_points: estimate ? Number(estimate) : null,
       },
     }).catch(() => {})

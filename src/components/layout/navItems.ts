@@ -1,5 +1,11 @@
 import type { ComponentType } from 'react'
-import { Building2, LayoutDashboard, ListChecks, Settings } from 'lucide-react'
+import {
+  Building2,
+  LayoutDashboard,
+  ListChecks,
+  MessagesSquare,
+  Settings,
+} from 'lucide-react'
 
 export interface NavItem {
   to: string
@@ -11,6 +17,7 @@ export interface NavItem {
 export const navItems: NavItem[] = [
   { to: '/dashboard', icon: LayoutDashboard, labelKey: 'nav.dashboard', end: true },
   { to: '/workspaces', icon: Building2, labelKey: 'nav.workspaces' },
+  { to: '/messages', icon: MessagesSquare, labelKey: 'nav.messages' },
   { to: '/settings', icon: Settings, labelKey: 'nav.settings' },
 ]
 

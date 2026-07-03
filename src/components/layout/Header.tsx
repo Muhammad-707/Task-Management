@@ -11,6 +11,7 @@ function usePageTitle(): string {
 
   if (seg.length === 0 || seg[0] === 'dashboard') return t('nav.dashboard')
   if (seg[0] === 'workspaces') return t('nav.workspaces')
+  if (seg[0] === 'messages') return t('nav.messages')
   if (seg[0] === 'settings') return t('nav.settings')
   if (seg[0] === 'profile') return t('nav.profile')
   if (seg.includes('issues')) return t('issues.title')

@@ -299,13 +299,30 @@
     "dashboard": "Dashboard",
     "workspaces": "Workspaces",
     "profile": "Profile",
-    "settings": "Settings"
+    "settings": "Settings",
+    "messages": "Messages"
   },
   "profile": {
     "title": "Profile",
     "avatarUrl": "Avatar URL",
     "save": "Save",
-    "saved": "Saved"
+    "saved": "Saved",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "memberSince": "Member since",
+    "presets": "Pick an avatar",
+    "editTitle": "Edit profile",
+    "avatar": {
+      "upload": "Upload photo"
+    },
+    "cover": {
+      "label": "Cover image",
+      "change": "Change cover",
+      "upload": "Upload cover",
+      "remove": "Remove cover",
+      "uploaded": "Uploaded from file"
+    }
   },
   "settings": {
     "title": "Settings",
@@ -314,6 +331,19 @@
     "themes": {
       "light": "Light",
       "dark": "Dark"
+    },
+    "editProfile": "Edit profile",
+    "notifications": "Notifications",
+    "about": "About",
+    "version": "Version",
+    "signOut": "Sign out",
+    "signOutHint": "End your session on this device.",
+    "notif": {
+      "email": "Email notifications",
+      "mentions": "When I am mentioned",
+      "assignments": "When a task is assigned to me",
+      "comments": "New comments on my tasks",
+      "hint": "Preferences are stored on this device."
     }
   },
   "workspaces": {
@@ -342,6 +372,19 @@
       "admin": "Admin",
       "member": "Member",
       "guest": "Guest"
+    },
+    "invites": {
+      "pending": "Pending invites",
+      "expires": "expires",
+      "copyLink": "Copy invite link",
+      "copied": "Invite link copied",
+      "revoke": "Revoke invite",
+      "status": {
+        "pending": "Pending",
+        "accepted": "Accepted",
+        "expired": "Expired",
+        "revoked": "Revoked"
+      }
     }
   },
   "projects": {
@@ -451,7 +494,8 @@
       "medium": "Medium",
       "high": "High",
       "urgent": "Urgent"
-    }
+    },
+    "dragHint": "Tip: drag a card between columns to change its status."
   },
   "comments": {
     "title": "Comments",
@@ -510,6 +554,84 @@
       "paused": "Paused",
       "completed": "Completed",
       "cancelled": "Cancelled"
+    }
+  },
+  "chat": {
+    "tabs": {
+      "chats": "Chats",
+      "contacts": "Contacts"
+    },
+    "newChat": "New chat",
+    "addContact": "Add contact",
+    "addContactDesc": "Send a contact request to a workspace member.",
+    "you": "You",
+    "noMessages": "No messages yet",
+    "message": "Message",
+    "add": "Add",
+    "direct": "Direct",
+    "group": "Group",
+    "workspace": "Workspace",
+    "groupName": "Group name",
+    "groupNamePlaceholder": "Design team",
+    "selectMembers": "Select members",
+    "noMembers": "No members available",
+    "createGroup": "Create group",
+    "groupCreated": "Group created",
+    "contacts": "Contacts",
+    "noContacts": "No contacts yet",
+    "requestSent": "Contact request sent",
+    "directMessage": "Direct message",
+    "memberCount": "{{count}} members",
+    "startConversation": "Say hello 👋",
+    "messagePlaceholder": "Type a message…",
+    "theme": {
+      "title": "Chat theme",
+      "upload": "Upload image",
+      "apply": "Apply",
+      "presets": {
+        "default": "Default",
+        "aurora": "Aurora",
+        "ocean": "Ocean",
+        "sunset": "Sunset",
+        "forest": "Forest",
+        "midnight": "Midnight",
+        "candy": "Candy"
+      }
+    },
+    "emptyThread": {
+      "title": "Your messages",
+      "desc": "Select a chat or start a new conversation."
+    },
+    "emptyChats": {
+      "title": "No conversations",
+      "desc": "Start a chat with one of your contacts."
+    },
+    "requests": {
+      "incoming": "Incoming requests",
+      "outgoing": "Sent requests",
+      "accept": "Accept",
+      "decline": "Decline",
+      "accepted": "Contact added",
+      "pending": "Pending"
+    }
+  },
+  "dashboard": {
+    "seedDemo": "Create demo data",
+    "demoCreated": "Demo workspace created 🎉",
+    "emptyTitle": "Nothing here yet",
+    "emptyDesc": "Spin up a demo workspace with sample projects, issues, cycles and modules — or create your own from scratch.",
+    "completion": "Completion",
+    "done": "done",
+    "issuesDone": "issues completed",
+    "byPriority": "Issues by priority",
+    "noIssues": "No issues yet — create one on a project board.",
+    "recent": "Recent issues",
+    "projects": "projects",
+    "hints": {
+      "total": "across all projects",
+      "inProgress": "being worked on",
+      "completed": "finished tasks",
+      "overdue": "past their due date"
     }
   }
 }
