@@ -9,7 +9,7 @@ import {
 import { Loading } from '@/components/common/Loading'
 
 const inputClass =
-  'w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring'
+  'w-full rounded-xl border border-input bg-secondary/50 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-primary/60 focus:ring-2 focus:ring-primary/25'
 
 interface LabelsManagerProps {
   workspaceSlug: string
@@ -49,14 +49,14 @@ export function LabelsManager({ workspaceSlug, projectId }: LabelsManagerProps) 
 
       <form
         onSubmit={onAdd}
-        className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4"
+        className="flex flex-wrap items-end gap-3 rounded-2xl border border-border glass p-5"
       >
         <input
           type="color"
           value={color}
           onChange={(event) => setColor(event.target.value)}
           aria-label={t('labels.color')}
-          className="h-9 w-12 cursor-pointer rounded border border-input bg-background"
+          className="h-11 w-12 cursor-pointer rounded-xl border border-input bg-secondary/50"
         />
         <div className="flex-1 space-y-2">
           <label htmlFor="label-name" className="text-sm font-medium">
@@ -73,7 +73,7 @@ export function LabelsManager({ workspaceSlug, projectId }: LabelsManagerProps) 
         <button
           type="submit"
           disabled={isCreating}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="btn-gradient rounded-xl px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {t('labels.add')}
         </button>

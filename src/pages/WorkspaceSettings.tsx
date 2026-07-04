@@ -21,6 +21,7 @@ import type { InviteRole } from '@/features/invites/types'
 import type { WorkspaceRole } from '@/features/workspaces/types'
 import { useToast } from '@/app/providers/ToastProvider'
 import { Loading } from '@/components/common/Loading'
+import { BackButton } from '@/components/common/BackButton'
 import { Avatar, Badge, Button, Card, Field, Input, Select } from '@/components/ui'
 import { formatDate } from '@/lib/datetime'
 import { cn } from '@/lib/utils'
@@ -43,8 +44,8 @@ export default function WorkspaceSettings() {
 
   const [updateWorkspace, { isLoading: isSaving }] = useUpdateWorkspaceMutation()
   const [deleteWorkspace] = useDeleteWorkspaceMutation()
-  const [addMember, { isLoading: isAdding }] = useAddWorkspaceMemberMutation()
-  const [createInvite, { isLoading: isInviting }] = useCreateInviteMutation()
+  const [addMember] = useAddWorkspaceMemberMutation()
+  const [createInvite] = useCreateInviteMutation()
   const [revokeInvite] = useRevokeInviteMutation()
   const [updateMember] = useUpdateWorkspaceMemberMutation()
   const [removeMember] = useRemoveWorkspaceMemberMutation()
@@ -84,22 +85,26 @@ export default function WorkspaceSettings() {
     }
   }
 
-  const onInvite = async (event: FormEvent) => {
+  const onInvite = (event: FormEvent) => {
     event.preventDefault()
-    setInvited(false)
-    try {
-      // Prefer the magic-link invite endpoint; fall back to a direct add.
-      try {
-        await createInvite({ slug, body: { email, role } }).unwrap()
-      } catch {
-        await addMember({ slug, body: { email, role } }).unwrap()
-      }
-      setEmail('')
-      setRole('member')
-      setInvited(true)
-    } catch {
-      // handled by global toast
-    }
+    const payload = { email: email.trim(), role }
+    if (!payload.email) return
+    // Non-blocking: acknowledge instantly and send in the background so the
+    // (slow, email-sending) backend never freezes the form. The pending list
+    // refreshes automatically once the request lands (invalidatesTags).
+    setEmail('')
+    setRole('member')
+    setInvited(true)
+    createInvite({ slug, body: payload })
+      .unwrap()
+      .catch((err) => {
+        // Only fall back to a direct add when the invite endpoint is missing
+        // (404/405) — not on genuine errors, so we don't fire a second slow call.
+        const status = (err as { status?: number })?.status
+        if (status === 404 || status === 405) {
+          void addMember({ slug, body: payload }).unwrap().catch(() => {})
+        }
+      })
   }
 
   const onCopyLink = async (url: string) => {
@@ -113,6 +118,7 @@ export default function WorkspaceSettings() {
 
   return (
     <div className="space-y-8">
+      <BackButton to={`/${slug}/projects`} label={t('projects.title')} className="-ml-2" />
       <div>
         <h1 className="text-2xl font-bold tracking-tight">{workspace.name}</h1>
         <p className="mt-1 text-sm text-muted-foreground">/{workspace.slug}</p>
@@ -177,7 +183,7 @@ export default function WorkspaceSettings() {
                 ))}
               </Select>
             </Field>
-            <Button type="submit" loading={isAdding || isInviting} className="shrink-0">
+            <Button type="submit" className="shrink-0">
               <Mail className="h-4 w-4" />
               {t('workspaces.members.inviteAction')}
             </Button>

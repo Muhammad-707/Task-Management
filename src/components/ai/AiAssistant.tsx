@@ -13,6 +13,7 @@ import {
 import { useAiChatMutation } from '@/features/ai/aiApi'
 import { askGemini, geminiConfigured } from '@/features/ai/gemini'
 import type { AiAction, AiMessage } from '@/features/ai/types'
+import { useClickOutside } from '@/components/ui/useClickOutside'
 import { cn } from '@/lib/utils'
 
 interface ChatTurn extends AiMessage {
@@ -46,6 +47,59 @@ export function AiAssistant() {
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  // Close when clicking anywhere outside the panel (or pressing Escape).
+  const panelRef = useClickOutside<HTMLDivElement>(open, () => setOpen(false))
+
+  // Draggable launcher. Position is component state only, so it resets to the
+  // default corner on every page refresh (as requested). `drag` is a translate
+  // offset from the default bottom-right anchor.
+  const [drag, setDrag] = useState({ x: 0, y: 0 })
+  const dragState = useRef<{
+    startX: number
+    startY: number
+    baseX: number
+    baseY: number
+    moved: boolean
+    pointerId: number
+  } | null>(null)
+
+  const onLauncherPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId)
+    dragState.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      baseX: drag.x,
+      baseY: drag.y,
+      moved: false,
+      pointerId: e.pointerId,
+    }
+  }
+
+  const onLauncherPointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const s = dragState.current
+    if (!s) return
+    const dx = e.clientX - s.startX
+    const dy = e.clientY - s.startY
+    if (!s.moved && Math.hypot(dx, dy) < 5) return
+    s.moved = true
+    // Keep the 56px button fully on-screen with an 8px margin.
+    const minX = -(window.innerWidth - 56 - 36)
+    const minY = -(window.innerHeight - 56 - 36)
+    setDrag({
+      x: Math.min(20, Math.max(minX, s.baseX + dx)),
+      y: Math.min(20, Math.max(minY, s.baseY + dy)),
+    })
+  }
+
+  const onLauncherPointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const s = dragState.current
+    dragState.current = null
+    if (e.currentTarget.hasPointerCapture(e.pointerId))
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    // A genuine click (no drag) toggles the panel open.
+    if (s && !s.moved) setOpen((v) => !v)
+  }
 
   useEffect(() => {
     if (open) inputRef.current?.focus()
@@ -114,25 +168,29 @@ export function AiAssistant() {
 
   return (
     <>
-      {/* Launcher */}
+      {/* Launcher — circular, draggable, resets to the corner on refresh */}
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onPointerDown={onLauncherPointerDown}
+        onPointerMove={onLauncherPointerMove}
+        onPointerUp={onLauncherPointerUp}
+        style={{ transform: `translate(${drag.x}px, ${drag.y}px)`, touchAction: 'none' }}
         aria-label={t('ai.title')}
         className={cn(
-          'group fixed bottom-6 right-7 z-40 flex h-14 w-14 items-center justify-center rounded-[1.15rem] text-white ring-1 ring-white/25 transition-all duration-300 hover:scale-110 active:scale-95 sm:right-9',
-          'btn-gradient shadow-[0_14px_40px_-10px_var(--color-primary)]',
+          'group fixed bottom-6 right-7 z-40 flex h-14 w-14 touch-none items-center justify-center rounded-full text-white ring-1 ring-white/25 transition-[opacity,box-shadow] duration-300 hover:shadow-[0_18px_50px_-10px_var(--color-primary)] active:scale-95 sm:right-9',
+          'btn-gradient shadow-[0_14px_40px_-10px_var(--color-primary)] cursor-grab active:cursor-grabbing',
           open && 'pointer-events-none scale-75 opacity-0',
         )}
       >
         {/* soft ambient glow + gentle pulsing halo */}
-        <span className="absolute inset-0 -z-10 rounded-[1.15rem] bg-primary/50 blur-xl transition-opacity group-hover:opacity-90" />
-        <span className="absolute inset-0 -z-10 animate-ping rounded-[1.15rem] bg-primary/20 [animation-duration:2.8s]" />
+        <span className="absolute inset-0 -z-10 rounded-full bg-primary/50 blur-xl transition-opacity group-hover:opacity-90" />
+        <span className="absolute inset-0 -z-10 animate-ping rounded-full bg-primary/20 [animation-duration:2.8s]" />
         <Sparkles className="h-6 w-6 drop-shadow transition-transform duration-300 group-hover:rotate-12" />
       </button>
 
       {/* Panel */}
       <div
+        ref={panelRef}
         className={cn(
           'fixed bottom-0 right-0 z-50 flex h-[100dvh] w-full flex-col sm:bottom-6 sm:right-7 sm:h-[640px] sm:max-h-[calc(100dvh-3rem)] sm:w-[404px] sm:rounded-3xl',
           'border border-border bg-card/95 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)] backdrop-blur-2xl transition-all duration-300 ease-out',

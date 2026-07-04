@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { Settings2 } from 'lucide-react'
 import {
   useAddProjectMemberMutation,
   useDeleteProjectMutation,
@@ -15,11 +16,12 @@ import type { ProjectRole } from '@/features/projects/types'
 import { StatesManager } from '@/features/states/StatesManager'
 import { LabelsManager } from '@/features/labels/LabelsManager'
 import { Loading } from '@/components/common/Loading'
+import { BackButton } from '@/components/common/BackButton'
 
 const ROLES: ProjectRole[] = ['admin', 'member', 'viewer']
 
 const inputClass =
-  'w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring'
+  'w-full rounded-xl border border-input bg-secondary/50 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-primary/60 focus:ring-2 focus:ring-primary/25'
 
 export default function ProjectSettings() {
   const { t } = useTranslation()
@@ -105,11 +107,20 @@ export default function ProjectSettings() {
 
   return (
     <div className="space-y-10">
+      <BackButton to={`/${slug}/projects/${pid}`} label={t('issues.title')} className="-ml-2" />
       <section className="space-y-4">
-        <h1 className="text-2xl font-bold">{project.name}</h1>
+        <div className="flex items-center gap-3">
+          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-lg">
+            <Settings2 className="h-5 w-5" />
+          </span>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
+            <p className="text-sm text-muted-foreground">{t('projects.toSettings')}</p>
+          </div>
+        </div>
         <form
           onSubmit={onSave}
-          className="space-y-4 rounded-lg border border-border p-4"
+          className="space-y-4 rounded-2xl border border-border glass p-6"
         >
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
@@ -151,14 +162,14 @@ export default function ProjectSettings() {
             <button
               type="submit"
               disabled={isSaving}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="btn-gradient rounded-xl px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {t('projects.save')}
             </button>
             <button
               type="button"
               onClick={() => void onDelete()}
-              className="rounded-md border border-destructive px-4 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive hover:text-primary-foreground"
+              className="rounded-xl border border-destructive/40 px-4 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive hover:text-primary-foreground"
             >
               {t('projects.delete')}
             </button>
@@ -171,7 +182,7 @@ export default function ProjectSettings() {
 
         <form
           onSubmit={onAddMember}
-          className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4"
+          className="flex flex-wrap items-end gap-3 rounded-2xl border border-border glass p-5"
         >
           <div className="flex-1 space-y-2">
             <label htmlFor="member-email" className="text-sm font-medium">
@@ -194,7 +205,7 @@ export default function ProjectSettings() {
               id="member-role"
               value={role}
               onChange={(event) => setRole(event.target.value as ProjectRole)}
-              className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+              className="h-11 rounded-xl border border-input bg-secondary/50 px-3 text-sm outline-none focus:border-primary/60"
             >
               {ROLES.map((value) => (
                 <option key={value} value={value}>
@@ -206,7 +217,7 @@ export default function ProjectSettings() {
           <button
             type="submit"
             disabled={isAdding}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="btn-gradient rounded-xl px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {t('projects.members.add')}
           </button>
@@ -215,7 +226,7 @@ export default function ProjectSettings() {
         {loadingMembers ? (
           <Loading />
         ) : Array.isArray(members) && members.length > 0 ? (
-          <ul className="divide-y divide-border rounded-lg border border-border">
+          <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border glass">
             {members.map((member) => (
               <li
                 key={member.user_id}

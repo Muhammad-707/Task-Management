@@ -30,6 +30,7 @@ const CycleDetails = lazy(() => import('@/pages/CycleDetails'))
 const Modules = lazy(() => import('@/pages/Modules'))
 const ModuleDetails = lazy(() => import('@/pages/ModuleDetails'))
 const Messages = lazy(() => import('@/pages/Messages'))
+const Invite = lazy(() => import('@/pages/Invite'))
 const Profile = lazy(() => import('@/pages/Profile'))
 const Settings = lazy(() => import('@/pages/Settings'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
@@ -38,6 +39,7 @@ export const router = createBrowserRouter([
   { path: '/', element: withSuspense(Home) },
   { path: '/login', element: withSuspense(Auth) },
   { path: '/register', element: withSuspense(Auth) },
+  { path: '/invite/:token', element: withSuspense(Invite) },
   {
     element: <ProtectedRoute />,
     children: [

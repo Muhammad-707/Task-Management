@@ -1,4 +1,5 @@
 import { baseApi } from '@/app/api'
+import { getLocalReactions, mergeReactions, setLocalReactions } from './reactionStore'
 import {
   normalizeConversation,
   type ChatUser,
@@ -7,17 +8,45 @@ import {
   type ContactRequestDirection,
   type Conversation,
   type Message,
+  type MessageReaction,
   type MessagesPage,
 } from './types'
 
 // Presigned chat attachment (POST /conversations/{id}/attachments).
+// The backend replies with a nested { attachment, upload } envelope; we
+// normalise it to a flat, easy-to-consume shape.
 export interface ChatAttachment {
   id: string
+  storage_key: string
   file_name: string
   file_size: number
   mime_type: string
-  upload_url?: string | null
-  download_url?: string | null
+  download_url: string | null
+  upload: { url: string; method: string; headers: Record<string, string> } | null
+}
+
+function normalizeChatAttachment(res: unknown): ChatAttachment {
+  const r = (res ?? {}) as Record<string, unknown>
+  const a = (r.attachment ?? r) as Record<string, unknown>
+  const rawUpload = r.upload as Record<string, unknown> | undefined
+  const uploadUrl =
+    (rawUpload?.url as string) ?? (r.upload_url as string) ?? ''
+  const upload = uploadUrl
+    ? {
+        url: uploadUrl,
+        method: String((rawUpload?.method as string) ?? 'PUT').toUpperCase(),
+        headers: (rawUpload?.headers as Record<string, string>) ?? {},
+      }
+    : null
+  return {
+    id: String(a.id ?? ''),
+    storage_key: String(a.storage_key ?? a.id ?? ''),
+    file_name: String(a.file_name ?? ''),
+    file_size: Number(a.file_size ?? 0),
+    mime_type: String(a.mime_type ?? ''),
+    download_url: (a.download_url as string) ?? (r.download_url as string) ?? null,
+    upload,
+  }
 }
 
 export const chatApi = baseApi.injectEndpoints({
@@ -157,6 +186,7 @@ export const chatApi = baseApi.injectEndpoints({
         method: 'POST',
         data: body,
       }),
+      transformResponse: normalizeChatAttachment,
     }),
 
     // --- Messages -------------------------------------------------------
@@ -169,21 +199,74 @@ export const chatApi = baseApi.injectEndpoints({
         method: 'GET',
         params: { cursor, limit },
       }),
-      transformResponse: (res: MessagesPage | Message[]): MessagesPage =>
-        Array.isArray(res) ? { data: res, next_cursor: null } : res,
+      transformResponse: (res: MessagesPage | Message[]): MessagesPage => {
+        const page = Array.isArray(res) ? { data: res, next_cursor: null } : res
+        // Re-apply locally-persisted reactions so polling never wipes them.
+        page.data = page.data.map((m) => {
+          const local = getLocalReactions(m.id)
+          return local ? { ...m, reactions: mergeReactions(m.reactions, local) } : m
+        })
+        return page
+      },
       providesTags: (_r, _e, { conversationId }) => [
         { type: 'Message', id: conversationId },
       ],
     }),
     sendMessage: builder.mutation<
       Message,
-      { conversationId: string; body: string }
+      {
+        conversationId: string
+        body: string
+        kind?: 'text' | 'image' | 'video' | 'audio' | 'voice' | 'file'
+        attachment_key?: string
+        attachment_name?: string
+        attachment_size?: number
+        attachment_mime?: string
+        attachment_duration?: number
+      }
     >({
-      query: ({ conversationId, body }) => ({
+      query: ({ conversationId, ...data }) => ({
         url: `/conversations/${conversationId}/messages`,
         method: 'POST',
-        data: { body },
+        data,
       }),
+      // Show the message instantly (the backend can be slow to respond), then
+      // reconcile with the server copy once it lands.
+      async onQueryStarted(arg, { dispatch, getState, queryFulfilled }) {
+        const state = getState() as {
+          auth?: { user?: { id?: string; email?: string; display_name?: string; avatar_url?: string | null } }
+        }
+        const me = state.auth?.user
+        const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`
+        const temp: Message = {
+          id: tempId,
+          conversation_id: arg.conversationId,
+          sender_id: me?.id ?? 'me',
+          body: arg.body,
+          created_at: new Date().toISOString(),
+          sender: {
+            id: me?.id ?? 'me',
+            email: me?.email ?? '',
+            display_name: me?.display_name ?? '',
+            avatar_url: me?.avatar_url ?? null,
+          },
+          kind: arg.kind ?? 'text',
+          reactions: [],
+          attachment_name: arg.attachment_name ?? null,
+          attachment_mime: arg.attachment_mime ?? null,
+          attachment_duration: arg.attachment_duration ?? null,
+        }
+        const patch = dispatch(
+          chatApi.util.updateQueryData('getMessages', { conversationId: arg.conversationId }, (draft) => {
+            draft.data.unshift(temp) // list is newest-first
+          }),
+        )
+        try {
+          await queryFulfilled
+        } catch {
+          patch.undo()
+        }
+      },
       invalidatesTags: (_r, _e, { conversationId }) => [
         { type: 'Message', id: conversationId },
         { type: 'Conversation', id: 'LIST' },
@@ -225,6 +308,8 @@ export const chatApi = baseApi.injectEndpoints({
         Array.isArray(res) ? res : (res.emojis ?? []),
     }),
     // Toggle an emoji reaction on a message (POST .../messages/{messageId}/reactions).
+    // Optimistically flips the reaction in the cached thread so it appears
+    // instantly (Telegram/Instagram-style), then reconciles with the server.
     toggleReaction: builder.mutation<
       unknown,
       { conversationId: string; messageId: string; emoji: string }
@@ -234,6 +319,51 @@ export const chatApi = baseApi.injectEndpoints({
         method: 'POST',
         data: { emoji },
       }),
+      async onQueryStarted(
+        { conversationId, messageId, emoji },
+        { dispatch, queryFulfilled },
+      ) {
+        let nextReactions: MessageReaction[] = []
+        dispatch(
+          chatApi.util.updateQueryData(
+            'getMessages',
+            { conversationId },
+            (draft) => {
+              const msg = draft.data.find((m) => m.id === messageId)
+              if (!msg) return
+              const list = (msg.reactions ??= [])
+              const existing = list.find((r) => r.emoji === emoji)
+              if (existing?.reacted) {
+                existing.reacted = false
+                existing.count = Math.max(0, (existing.count ?? 1) - 1)
+                if ((existing.count ?? 0) <= 0)
+                  msg.reactions = list.filter((r) => r.emoji !== emoji)
+              } else if (existing) {
+                existing.reacted = true
+                existing.count = (existing.count ?? 0) + 1
+              } else {
+                list.push({ emoji, count: 1, reacted: true })
+              }
+              nextReactions = (msg.reactions ?? []).map((r) => ({
+                emoji: r.emoji,
+                count: r.count,
+                reacted: r.reacted,
+                user_ids: r.user_ids,
+              }))
+            },
+          ),
+        )
+        // Persist locally so the reaction survives polling *and* a page reload,
+        // even if the backend doesn't echo reactions back on the message list.
+        setLocalReactions(messageId, nextReactions)
+        // Best-effort: swallow errors but keep the reaction visible.
+        try {
+          await queryFulfilled
+        } catch {
+          /* keep optimistic + local state */
+        }
+      },
+      // Reconcile counts from other users after the server confirms.
       invalidatesTags: (_r, _e, { conversationId }) => [
         { type: 'Message', id: conversationId },
       ],

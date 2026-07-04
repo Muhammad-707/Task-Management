@@ -18,7 +18,7 @@ const GROUPS: StateGroup[] = [
 ]
 
 const inputClass =
-  'w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring'
+  'w-full rounded-xl border border-input bg-secondary/50 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-primary/60 focus:ring-2 focus:ring-primary/25'
 
 interface StatesManagerProps {
   workspaceSlug: string
@@ -60,14 +60,14 @@ export function StatesManager({ workspaceSlug, projectId }: StatesManagerProps) 
 
       <form
         onSubmit={onAdd}
-        className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4"
+        className="flex flex-wrap items-end gap-3 rounded-2xl border border-border glass p-5"
       >
         <input
           type="color"
           value={color}
           onChange={(event) => setColor(event.target.value)}
           aria-label={t('states.color')}
-          className="h-9 w-12 cursor-pointer rounded border border-input bg-background"
+          className="h-11 w-12 cursor-pointer rounded-xl border border-input bg-secondary/50"
         />
         <div className="flex-1 space-y-2">
           <label htmlFor="state-name" className="text-sm font-medium">
@@ -89,7 +89,7 @@ export function StatesManager({ workspaceSlug, projectId }: StatesManagerProps) 
             id="state-group"
             value={group}
             onChange={(event) => setGroup(event.target.value as StateGroup)}
-            className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+            className="h-11 rounded-xl border border-input bg-secondary/50 px-3 text-sm outline-none focus:border-primary/60"
           >
             {GROUPS.map((value) => (
               <option key={value} value={value}>
@@ -101,7 +101,7 @@ export function StatesManager({ workspaceSlug, projectId }: StatesManagerProps) 
         <button
           type="submit"
           disabled={isCreating}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="btn-gradient rounded-xl px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {t('states.add')}
         </button>
@@ -110,7 +110,7 @@ export function StatesManager({ workspaceSlug, projectId }: StatesManagerProps) 
       {isLoading ? (
         <Loading />
       ) : Array.isArray(states) && states.length > 0 ? (
-        <ul className="divide-y divide-border rounded-lg border border-border">
+        <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border glass">
           {states.map((state) => (
             <li
               key={state.id}

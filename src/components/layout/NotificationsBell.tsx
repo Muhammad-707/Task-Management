@@ -1,12 +1,17 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Bell, Check, CheckCheck } from 'lucide-react'
+import { Bell, Check, CheckCheck, UserPlus } from 'lucide-react'
 import {
   useGetNotificationsQuery,
   useMarkAllNotificationsReadMutation,
   useMarkNotificationReadMutation,
 } from '@/features/notifications/notificationsApi'
+import {
+  useAcceptContactRequestMutation,
+  useDeclineContactRequestMutation,
+  useGetContactRequestsQuery,
+} from '@/features/chat/chatApi'
 import type { Notification } from '@/features/notifications/types'
 import { Avatar, useClickOutside } from '@/components/ui'
 import { timeAgo } from '@/lib/datetime'
@@ -26,8 +31,17 @@ export function NotificationsBell() {
   const [markRead] = useMarkNotificationReadMutation()
   const [markAll] = useMarkAllNotificationsReadMutation()
 
+  // Contact requests are global (not workspace-scoped) — surface incoming ones
+  // here too, so "someone wants to connect" shows up in the bell.
+  const { data: contactRequests } = useGetContactRequestsQuery('incoming', {
+    pollingInterval: 60_000,
+  })
+  const [acceptContact] = useAcceptContactRequestMutation()
+  const [declineContact] = useDeclineContactRequestMutation()
+  const pendingRequests = (contactRequests ?? []).filter((r) => r.status === 'pending')
+
   const items = data?.data ?? []
-  const unread = items.filter((n) => !n.read).length
+  const unread = items.filter((n) => !n.read).length + pendingRequests.length
 
   const onOpenItem = async (n: Notification) => {
     if (workspaceSlug && !n.read) {
@@ -72,11 +86,45 @@ export function NotificationsBell() {
           </div>
 
           <div className="max-h-96 overflow-y-auto">
-            {!workspaceSlug ? (
+            {/* Incoming contact requests — actionable inline */}
+            {pendingRequests.map((r) => (
+              <div
+                key={`cr-${r.id}`}
+                className="flex items-start gap-3 border-b border-border/60 bg-primary/5 px-4 py-3"
+              >
+                <Avatar name={r.requester?.display_name} src={r.requester?.avatar_url} size={32} />
+                <span className="min-w-0 flex-1">
+                  <span className="text-sm">
+                    <span className="font-medium">{r.requester?.display_name ?? 'Someone'}</span>{' '}
+                    <span className="text-muted-foreground">{t('notifications.types.contact_request')}</span>
+                  </span>
+                  <span className="mt-1.5 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => acceptContact(r.id)}
+                      className="inline-flex items-center gap-1 rounded-lg bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground hover:opacity-90"
+                    >
+                      <Check className="h-3 w-3" />
+                      {t('chat.requests.accept')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => declineContact(r.id)}
+                      className="rounded-lg px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-accent"
+                    >
+                      {t('chat.requests.decline')}
+                    </button>
+                  </span>
+                </span>
+                <UserPlus className="mt-1 h-3.5 w-3.5 shrink-0 text-primary" />
+              </div>
+            ))}
+
+            {!workspaceSlug && pendingRequests.length === 0 ? (
               <p className="px-4 py-10 text-center text-sm text-muted-foreground">
                 {t('notifications.selectWorkspace')}
               </p>
-            ) : items.length === 0 ? (
+            ) : items.length === 0 && pendingRequests.length === 0 ? (
               <div className="px-4 py-10 text-center">
                 <p className="text-sm font-medium">{t('notifications.empty')}</p>
                 <p className="mt-1 text-xs text-muted-foreground">

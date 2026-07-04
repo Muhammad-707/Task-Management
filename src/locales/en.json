@@ -21,6 +21,32 @@
     "accountSettings": "Account settings",
     "menu": "Menu"
   },
+  "search": {
+    "placeholder": "Search workspaces, projects, tasks…",
+    "hint": "Type to search across everything — even a single letter works.",
+    "everything": "Everything",
+    "results": "Results",
+    "noResults": "Nothing found for \"{{term}}\".",
+    "kinds": {
+      "workspace": "Workspace",
+      "project": "Project",
+      "issue": "Task"
+    }
+  },
+  "call": {
+    "start": "Start audio call",
+    "calling": "Calling…",
+    "incoming": "Incoming call…",
+    "accept": "Accept",
+    "decline": "Decline",
+    "hangup": "End call",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "unknown": "Incoming call",
+    "msgMissed": "Missed call",
+    "msgEnded": "Audio call · {{duration}}",
+    "failed": "Couldn't reach them"
+  },
   "subnav": {
     "overview": "Overview",
     "projects": "Projects",
@@ -59,7 +85,8 @@
     "types": {
       "issue_assigned": "assigned you an issue",
       "comment_added": "left a comment",
-      "mentioned": "mentioned you"
+      "mentioned": "mentioned you",
+      "contact_request": "wants to connect with you"
     }
   },
   "landing": {
@@ -240,7 +267,9 @@
     "retry": "Try again",
     "error": "Something went wrong",
     "backHome": "Back home",
-    "getStarted": "Get started"
+    "getStarted": "Get started",
+    "cancel": "Cancel",
+    "back": "Back"
   },
   "auth": {
     "signIn": "Sign in",
@@ -418,10 +447,19 @@
         "expired": "Expired",
         "revoked": "Revoked"
       }
-    }
+    },
+    "subtitle": "Your teams and their projects, all in one place.",
+    "createTitle": "Create workspace",
+    "open": "Open",
+    "manage": "Settings",
+    "namePlaceholder": "Acme Inc.",
+    "slugHint": "Used in URLs — lowercase letters, numbers and dashes."
   },
   "projects": {
     "title": "Projects",
+    "subtitle": "Boards, cycles and modules for this workspace.",
+    "createTitle": "New project",
+    "noDescription": "No description yet.",
     "name": "Name",
     "identifier": "Identifier",
     "description": "Description",
@@ -485,6 +523,7 @@
     "search": "Search...",
     "allPriorities": "All priorities",
     "loadMore": "Load more",
+    "openFull": "Open full page",
     "notFound": "Issue not found",
     "assignees": "Assignees",
     "assign": "Assign",
@@ -545,6 +584,7 @@
   },
   "cycles": {
     "title": "Cycles",
+    "subtitle": "Time-boxed sprints for your project.",
     "toBoard": "To board",
     "name": "Name",
     "start": "Start",
@@ -567,6 +607,7 @@
   },
   "modules": {
     "title": "Modules",
+    "subtitle": "Group related work into deliverable milestones.",
     "name": "Name",
     "start": "Start",
     "target": "Target",
@@ -661,6 +702,21 @@
       "decline": "Decline",
       "accepted": "Contact added",
       "pending": "Pending"
+    },
+    "online": "online",
+    "offline": "offline",
+    "typing": "typing…",
+    "lastSeen": "last seen {{time}}",
+    "emptyMessage": "Empty message",
+    "emoji": "Emoji",
+    "voice": {
+      "record": "Record voice message",
+      "recording": "Recording…",
+      "send": "Send",
+      "cancel": "Cancel",
+      "message": "Voice message",
+      "unsupported": "Voice recording is not supported on this device",
+      "denied": "Microphone access denied"
     }
   },
   "dashboard": {
@@ -681,5 +737,36 @@
       "completed": "finished tasks",
       "overdue": "past their due date"
     }
+  },
+  "invite": {
+    "loading": "Loading invitation…",
+    "errorTitle": "Something went wrong",
+    "retry": "Try again",
+    "invalidTitle": "Invitation link is invalid",
+    "invalidBody": "This link is broken or does not exist.",
+    "revokedTitle": "Invitation revoked",
+    "revokedBody": "This invitation has been revoked by the workspace.",
+    "expiredTitle": "Invitation expired",
+    "expiredBody": "This invitation has expired — ask for a new one.",
+    "acceptedTitle": "Invitation already accepted",
+    "acceptedBody": "You've already joined this workspace.",
+    "goToLogin": "Sign in",
+    "openApp": "Open app",
+    "heading": "{{inviter}} invites you to join",
+    "asRole": "as {{role}}",
+    "invitedEmail": "Invitation for",
+    "tabRegister": "Create account",
+    "tabLogin": "Sign in",
+    "displayName": "Your name",
+    "password": "Password",
+    "email": "Email",
+    "join": "Join workspace",
+    "accept": "Accept invitation",
+    "loggedInAs": "You are signed in as {{email}}",
+    "notYou": "Not you? Sign out",
+    "wrongEmail": "This invitation was sent to a different email — sign in with the right account.",
+    "gone": "This invitation is no longer valid.",
+    "success": "Welcome to {{workspace}}!",
+    "passwordHint": "At least 8 characters"
   }
 }
