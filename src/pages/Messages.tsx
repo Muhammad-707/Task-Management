@@ -3,13 +3,17 @@ import type { ChangeEvent, FormEvent, KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Check,
+  Mic,
   MessagesSquare,
   MoreVertical,
   Palette,
   Pencil,
+  Phone,
+  Play,
   Plus,
   Search,
   SendHorizontal,
+  Smile,
   SmilePlus,
   Trash2,
   Upload,
@@ -29,7 +33,6 @@ import {
   useGetContactsQuery,
   useGetConversationsQuery,
   useGetMessagesQuery,
-  useGetReactionEmojisQuery,
   useLazySearchContactsQuery,
   useOpenDirectConversationMutation,
   useRenameConversationMutation,
@@ -37,9 +40,10 @@ import {
   useSendMessageMutation,
   useToggleReactionMutation,
 } from '@/features/chat/chatApi'
-import { useLazyGetUsersQuery } from '@/features/users/usersApi'
+import { useGetPresenceQuery, useLazyGetUsersQuery } from '@/features/users/usersApi'
 import type { ChatUser, Conversation, Message } from '@/features/chat/types'
 import { useClickOutside } from '@/components/ui'
+import { useCall } from '@/features/calls/CallProvider'
 import { useMeQuery } from '@/features/auth/authApi'
 import {
   useGetWorkspaceMembersQuery,
@@ -49,6 +53,8 @@ import { useToast } from '@/app/providers/ToastProvider'
 import { Avatar, Button, EmptyState, Field, Input, Modal, Select } from '@/components/ui'
 import { Loading } from '@/components/common/Loading'
 import { timeAgo } from '@/lib/datetime'
+import { resolveMediaUrl } from '@/lib/media'
+import { playReceive, playSend } from '@/lib/sound'
 import { cn } from '@/lib/utils'
 
 type Tab = 'chats' | 'contacts'
@@ -64,8 +70,109 @@ const CHAT_THEMES: { id: string; bg: string }[] = [
   { id: 'candy', bg: 'radial-gradient(circle at 30% 20%,#ec4899,transparent 55%),linear-gradient(135deg,#8b5cf6,#3b82f6)' },
 ]
 
+/** Curated emoji set for the composer picker (Telegram-style). */
+const COMPOSER_EMOJIS =
+  '😀 😁 😂 🤣 😊 😍 😘 😎 🤩 🥳 🤗 🤔 🙃 😉 😌 😴 😭 😅 😇 🥰 😋 😛 🤨 😐 😑 🙄 😏 😬 😳 🥺 😤 😡 🤯 😱 😨 😰 😢 🤤 🤠 🤒 🤕 🤧 🥴 😷 🤮 👍 👎 👏 🙌 🙏 👌 🤝 💪 🔥 ✨ ⭐ 🎉 🎊 ❤️ 🧡 💛 💚 💙 💜 🖤 💯 ✅ ❌ ⚡ 🚀 👀 💡 📌 ⏰ 🎯 🥂 ☕'
+    .split(' ')
+
 const chatThemeKey = (id: string) => `chat-theme-${id}`
 const isImageTheme = (v: string) => v.startsWith('http') || v.startsWith('data:')
+
+const formatSeconds = (s: number) =>
+  `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+
+/** Best-effort extraction of a backend validation message (for voice 400s etc.). */
+function voiceErrorMessage(err: unknown): string | undefined {
+  const data = (err as { data?: unknown })?.data
+  if (typeof data === 'string') return data
+  if (data && typeof data === 'object') {
+    const o = data as Record<string, unknown>
+    const wrapped = o.error as { message?: unknown } | undefined
+    if (wrapped && typeof wrapped.message === 'string') return wrapped.message
+    if (typeof o.message === 'string') return o.message
+    if (typeof o.detail === 'string') return o.detail
+  }
+  return undefined
+}
+
+/**
+ * The exact quick-reaction set the backend accepts (POST .../reactions enum).
+ * Hard-coded so the bytes match precisely — a mismatched emoji is rejected with
+ * a 400, which is why reactions used to flash and vanish.
+ */
+const REACTION_EMOJIS = ['👍', '❤️', '😂', '😍', '💩']
+
+const urlLike = (s: string) => /^https?:\/\/\S+$/.test(s.trim())
+
+/** Download URL of the first attachment whose mime matches `pred` (if any). */
+function attachmentUrl(m: Message, pred: (mime: string) => boolean): string {
+  const a = m.attachments?.find((x) => x.download_url && pred(x.mime_type || ''))
+  return a?.download_url ?? ''
+}
+
+/** If a message is a playable voice/audio note, return its URL + duration. */
+function messageAudio(m: Message): { url: string; duration?: number } | null {
+  if (m.kind === 'voice' || m.kind === 'audio') {
+    const url =
+      m.attachment_url ||
+      attachmentUrl(m, (mime) => mime.startsWith('audio/')) ||
+      attachmentUrl(m, () => true) ||
+      (urlLike(m.body) ? m.body.trim() : '')
+    if (url) return { url: resolveMediaUrl(url), duration: m.attachment_duration ?? undefined }
+  }
+  const b = m.body.trim()
+  if (urlLike(b) && /\.(webm|mp3|ogg|wav|m4a|aac)(\?|$)/i.test(b)) return { url: resolveMediaUrl(b) }
+  return null
+}
+
+/** If a message is an image, return its URL. */
+function messageImage(m: Message): { url: string } | null {
+  if (m.kind === 'image') {
+    const url =
+      m.attachment_url ||
+      attachmentUrl(m, (mime) => mime.startsWith('image/')) ||
+      (urlLike(m.body) ? m.body.trim() : '')
+    if (url) return { url: resolveMediaUrl(url) }
+  }
+  const b = m.body.trim()
+  if (urlLike(b) && /\.(png|jpe?g|gif|webp|avif|bmp|svg)(\?|$)/i.test(b)) return { url: resolveMediaUrl(b) }
+  return null
+}
+
+/** If a message is a video, return its URL. */
+function messageVideo(m: Message): { url: string } | null {
+  if (m.kind === 'video') {
+    const url =
+      m.attachment_url ||
+      attachmentUrl(m, (mime) => mime.startsWith('video/')) ||
+      (urlLike(m.body) ? m.body.trim() : '')
+    if (url) return { url: resolveMediaUrl(url) }
+  }
+  return null
+}
+
+/** If a message is a generic downloadable file, return its URL + name. */
+function messageFile(m: Message): { url: string; name: string } | null {
+  if (m.kind === 'file') {
+    const url =
+      m.attachment_url || attachmentUrl(m, () => true) || (urlLike(m.body) ? m.body.trim() : '')
+    if (url)
+      return { url: resolveMediaUrl(url), name: m.attachment_name || m.attachments?.[0]?.file_name || 'file' }
+  }
+  return null
+}
+
+/** Whether a message has anything worth rendering (used to hide deleted ones). */
+function messageHasContent(m: Message): boolean {
+  return (
+    !!m.body.trim() ||
+    !!messageAudio(m) ||
+    !!messageImage(m) ||
+    !!messageVideo(m) ||
+    !!messageFile(m) ||
+    (m.attachments?.length ?? 0) > 0
+  )
+}
 
 /** The display name / avatar to show for a conversation from the current user's POV. */
 function conversationPeer(conv: Conversation, myId: string): { name: string; avatar: string | null } {
@@ -229,6 +336,23 @@ function ConversationList({
   onNew: () => void
 }) {
   const { t } = useTranslation()
+
+  // Presence for every direct-chat peer, so the list mirrors Telegram's dots.
+  const peerIds = useMemo(() => {
+    const ids = new Set<string>()
+    for (const c of conversations ?? []) {
+      if (c.type !== 'group') {
+        const other = c.members.find((m) => m.id !== myId) ?? c.members[0]
+        if (other?.id) ids.add(other.id)
+      }
+    }
+    return [...ids]
+  }, [conversations, myId])
+  const { data: listPresence } = useGetPresenceQuery(peerIds, {
+    skip: peerIds.length === 0,
+    pollingInterval: 30000,
+  })
+
   if (loading) return <Loading />
   if (!conversations || conversations.length === 0) {
     return (
@@ -253,6 +377,10 @@ function ConversationList({
       {conversations.map((conv) => {
         const peer = conversationPeer(conv, myId)
         const isGroup = conv.type === 'group'
+        const otherId = isGroup
+          ? ''
+          : (conv.members.find((m) => m.id !== myId)?.id ?? '')
+        const online = otherId ? listPresence?.[otherId]?.online : false
         return (
           <li key={conv.id}>
             <button
@@ -268,7 +396,12 @@ function ConversationList({
                   <Users className="h-5 w-5" />
                 </span>
               ) : (
-                <Avatar name={peer.name} src={peer.avatar} size={40} />
+                <span className="relative shrink-0">
+                  <Avatar name={peer.name} src={peer.avatar} size={40} />
+                  {online && (
+                    <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card bg-emerald-500" />
+                  )}
+                </span>
               )}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
@@ -305,7 +438,7 @@ function Thread({
   myId: string
   onBack: () => void
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const peer = conversationPeer(conversation, myId)
   const isGroup = conversation.type === 'group'
 
@@ -320,7 +453,8 @@ function Thread({
   const [renameConversation, { isLoading: renaming }] = useRenameConversationMutation()
   const [deleteConversation] = useDeleteConversationMutation()
   const [createChatAttachment] = useCreateChatAttachmentMutation()
-  const { data: reactionEmojis } = useGetReactionEmojisQuery()
+  const { startCall, sendTyping, typingIn } = useCall()
+  const someoneTyping = typingIn(conversation.id)
   const { notify } = useToast()
 
   const [draft, setDraft] = useState('')
@@ -330,9 +464,37 @@ function Thread({
   const [renameOpen, setRenameOpen] = useState(false)
   const [nameDraft, setNameDraft] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [emojiOpen, setEmojiOpen] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const attachRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const menuRef = useClickOutside<HTMLDivElement>(menuOpen, () => setMenuOpen(false))
+  const emojiRef = useClickOutside<HTMLDivElement>(emojiOpen, () => setEmojiOpen(false))
+
+  // Presence for a direct chat's peer (online / last seen).
+  const peerId = isGroup
+    ? ''
+    : (conversation.members.find((m) => m.id !== myId)?.id ?? '')
+  const { data: presence } = useGetPresenceQuery(peerId ? [peerId] : [], {
+    skip: !peerId,
+    pollingInterval: 25000,
+  })
+  const peerPresence = peerId ? presence?.[peerId] : undefined
+
+  const insertEmoji = (emoji: string) => {
+    const el = textareaRef.current
+    if (el && el.selectionStart != null) {
+      const s = el.selectionStart
+      const e = el.selectionEnd ?? s
+      setDraft((d) => d.slice(0, s) + emoji + d.slice(e))
+      requestAnimationFrame(() => {
+        el.focus()
+        el.selectionStart = el.selectionEnd = s + emoji.length
+      })
+    } else {
+      setDraft((d) => d + emoji)
+    }
+  }
 
   const saveEdit = async (messageId: string) => {
     const body = editDraft.trim()
@@ -375,31 +537,134 @@ function Thread({
       /* toast */
     }
   }
-  // Presigned chat attachment: register → PUT the bytes → post a link message.
+  // Presigned chat attachment: register → PUT the bytes to the presigned URL →
+  // post a message that references the stored attachment (image/video/file).
   const onAttach = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
+    const mime = file.type || 'application/octet-stream'
+    const kind: 'image' | 'video' | 'audio' | 'file' = mime.startsWith('image/')
+      ? 'image'
+      : mime.startsWith('video/')
+        ? 'video'
+        : mime.startsWith('audio/')
+          ? 'audio'
+          : 'file'
     setUploading(true)
     try {
       const reg = await createChatAttachment({
         conversationId: conversation.id,
-        body: { file_name: file.name, file_size: file.size, mime_type: file.type || 'application/octet-stream' },
+        body: { file_name: file.name, file_size: file.size, mime_type: mime },
       }).unwrap()
-      if (reg.upload_url) {
-        await fetch(reg.upload_url, {
-          method: 'PUT',
-          headers: { 'Content-Type': file.type || 'application/octet-stream' },
+      if (reg.upload) {
+        const res = await fetch(resolveMediaUrl(reg.upload.url), {
+          method: reg.upload.method,
+          headers: { 'Content-Type': mime, ...reg.upload.headers },
           body: file,
         })
+        if (!res.ok) throw new Error(`upload failed (${res.status})`)
       }
-      const link = reg.download_url || reg.upload_url?.split('?')[0] || ''
       await sendMessage({
         conversationId: conversation.id,
-        body: `📎 ${file.name}${link ? `\n${link}` : ''}`,
+        body: reg.download_url || '',
+        kind,
+        ...(reg.storage_key ? { attachment_key: reg.storage_key } : {}),
+        attachment_name: file.name,
+        attachment_size: file.size,
+        attachment_mime: mime,
       }).unwrap()
+    } catch (err) {
+      notify(voiceErrorMessage(err) ?? t('issues.attachments.failed'), 'error')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  // --- Voice messages -------------------------------------------------
+  const [recording, setRecording] = useState(false)
+  const [recSeconds, setRecSeconds] = useState(0)
+  const mediaRecRef = useRef<MediaRecorder | null>(null)
+  const chunksRef = useRef<Blob[]>([])
+  const recTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const cancelRecRef = useRef(false)
+
+  const stopTimer = () => {
+    if (recTimerRef.current) clearInterval(recTimerRef.current)
+    recTimerRef.current = null
+  }
+
+  const startRecording = async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      notify(t('chat.voice.unsupported'), 'error')
+      return
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const rec = new MediaRecorder(stream)
+      chunksRef.current = []
+      cancelRecRef.current = false
+      rec.ondataavailable = (e) => e.data.size > 0 && chunksRef.current.push(e.data)
+      rec.onstop = () => {
+        stream.getTracks().forEach((tr) => tr.stop())
+        stopTimer()
+        const seconds = recSeconds
+        const cancelled = cancelRecRef.current
+        setRecording(false)
+        setRecSeconds(0)
+        if (cancelled || chunksRef.current.length === 0) return
+        const blob = new Blob(chunksRef.current, { type: rec.mimeType || 'audio/webm' })
+        void sendVoice(blob, Math.max(1, seconds))
+      }
+      mediaRecRef.current = rec
+      rec.start()
+      setRecording(true)
+      setRecSeconds(0)
+      recTimerRef.current = setInterval(() => setRecSeconds((s) => s + 1), 1000)
     } catch {
-      notify(t('issues.attachments.failed'), 'error')
+      notify(t('chat.voice.denied'), 'error')
+    }
+  }
+
+  const stopRecording = (cancel: boolean) => {
+    cancelRecRef.current = cancel
+    mediaRecRef.current?.stop()
+  }
+
+  useEffect(() => () => stopTimer(), [])
+
+  const sendVoice = async (blob: Blob, duration: number) => {
+    setUploading(true)
+    try {
+      const mime = blob.type || 'audio/webm'
+      const ext = (mime.split('/')[1] || 'webm').split(';')[0]
+      const fileName = `voice-${Date.now()}.${ext}`
+      const reg = await createChatAttachment({
+        conversationId: conversation.id,
+        body: { file_name: fileName, file_size: blob.size, mime_type: mime },
+      }).unwrap()
+      if (reg.upload) {
+        // The backend hands back a localhost/relative upload URL — rehost it to
+        // the real API origin, otherwise the PUT hits the frontend (:3000).
+        const res = await fetch(resolveMediaUrl(reg.upload.url), {
+          method: reg.upload.method,
+          headers: { 'Content-Type': mime, ...reg.upload.headers },
+          body: blob,
+        })
+        if (!res.ok) throw new Error(`upload failed (${res.status})`)
+      }
+      await sendMessage({
+        conversationId: conversation.id,
+        body: reg.download_url || '',
+        kind: 'voice',
+        ...(reg.storage_key ? { attachment_key: reg.storage_key } : {}),
+        attachment_name: fileName,
+        attachment_size: blob.size,
+        attachment_mime: mime,
+        attachment_duration: Math.round(duration),
+      }).unwrap()
+    } catch (err) {
+      notify(voiceErrorMessage(err) ?? t('issues.attachments.failed'), 'error')
     } finally {
       setUploading(false)
     }
@@ -451,13 +716,35 @@ function Thread({
       ? { backgroundImage: preset.bg }
       : undefined
 
-  // Messages arrive newest-first; render oldest -> newest.
-  const messages = useMemo(() => (page?.data ? [...page.data].reverse() : []), [page])
+  // Messages arrive newest-first; render oldest -> newest. Deleted messages come
+  // back empty — drop them entirely so nothing lingers (Instagram-style).
+  const messages = useMemo(
+    () => (page?.data ? [...page.data].filter(messageHasContent).reverse() : []),
+    [page],
+  )
 
   useEffect(() => {
     const el = scrollRef.current
     if (el) el.scrollTop = el.scrollHeight
   }, [messages.length])
+
+  // Play a soft chime when a new message arrives from the other side. Skip the
+  // initial render and our own messages (those get the send sound instead).
+  const lastMsgIdRef = useRef<string | null>(null)
+  const soundInitedRef = useRef(false)
+  useEffect(() => {
+    const last = messages[messages.length - 1]
+    if (!last) return
+    if (!soundInitedRef.current) {
+      soundInitedRef.current = true
+      lastMsgIdRef.current = last.id
+      return
+    }
+    if (last.id !== lastMsgIdRef.current) {
+      lastMsgIdRef.current = last.id
+      if (last.sender_id !== myId) playReceive()
+    }
+  }, [messages, myId])
 
   const onSend = async (e?: FormEvent) => {
     e?.preventDefault()
@@ -466,6 +753,8 @@ function Thread({
     setDraft('')
     try {
       await sendMessage({ conversationId: conversation.id, body }).unwrap()
+      lastMsgIdRef.current = null // don't double-count our own message as "received"
+      playSend()
     } catch {
       setDraft(body) // restore on failure; global toast reports the error
     }
@@ -494,19 +783,54 @@ function Thread({
             <Users className="h-4 w-4" />
           </span>
         ) : (
-          <Avatar name={peer.name} src={peer.avatar} size={36} />
+          <span className="relative">
+            <Avatar name={peer.name} src={peer.avatar} size={36} />
+            <span
+              className={cn(
+                'absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card',
+                peerPresence?.online ? 'bg-emerald-500' : 'bg-muted-foreground/50',
+              )}
+            />
+          </span>
         )}
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">{peer.name}</p>
-          <p className="truncate text-xs text-muted-foreground">
-            {isGroup
-              ? t('chat.memberCount', { count: conversation.members.length })
-              : t('chat.directMessage')}
+          <p
+            className={cn(
+              'truncate text-xs',
+              someoneTyping
+                ? 'text-primary'
+                : !isGroup && peerPresence?.online
+                  ? 'text-emerald-500'
+                  : 'text-muted-foreground',
+            )}
+          >
+            {someoneTyping
+              ? t('chat.typing')
+              : isGroup
+                ? t('chat.memberCount', { count: conversation.members.length })
+                : peerPresence?.online
+                  ? t('chat.online')
+                  : peerPresence?.last_seen
+                    ? t('chat.lastSeen', { time: timeAgo(peerPresence.last_seen, i18n.language) })
+                    : t('chat.offline')}
           </p>
         </div>
 
+        {/* Audio call (direct chats only) */}
+        {!isGroup && (
+          <button
+            type="button"
+            onClick={() => startCall({ conversationId: conversation.id, peer: { name: peer.name, avatar: peer.avatar } })}
+            title={t('call.start')}
+            className="ml-auto rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-emerald-500"
+          >
+            <Phone className="h-4 w-4" />
+          </button>
+        )}
+
         {/* Conversation actions (rename group / delete or leave) */}
-        <div ref={menuRef} className="relative ml-auto">
+        <div ref={menuRef} className={cn('relative', isGroup && 'ml-auto')}>
           <button
             type="button"
             onClick={() => setMenuOpen((o) => !o)}
@@ -674,7 +998,6 @@ function Thread({
                 message={m}
                 mine={mine}
                 showAuthor={showAuthor}
-                emojis={reactionEmojis ?? []}
                 myId={myId}
                 editing={editingId === m.id}
                 editDraft={editDraft}
@@ -712,31 +1035,106 @@ function Thread({
         </Modal>
       )}
 
-      <form onSubmit={onSend} className="flex items-end gap-2 border-t border-border p-3">
-        <input ref={attachRef} type="file" className="hidden" onChange={onAttach} />
-        <Button
-          type="button"
-          size="icon"
-          variant="secondary"
-          loading={uploading}
-          onClick={() => attachRef.current?.click()}
-          title={t('issues.attachments.add')}
-          className="h-[42px] w-[42px]"
-        >
-          {!uploading && <Upload className="h-4 w-4" />}
-        </Button>
-        <textarea
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={onKeyDown}
-          rows={1}
-          placeholder={t('chat.messagePlaceholder')}
-          className="max-h-32 min-h-[42px] flex-1 resize-none rounded-xl border border-input bg-secondary/50 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-primary/60 focus:ring-2 focus:ring-primary/25"
-        />
-        <Button type="submit" size="icon" loading={sending} disabled={!draft.trim()} className="h-[42px] w-[42px]">
-          <SendHorizontal className="h-4 w-4" />
-        </Button>
-      </form>
+      {recording ? (
+        <div className="flex items-center gap-3 border-t border-border p-3">
+          <button
+            type="button"
+            onClick={() => stopRecording(true)}
+            title={t('chat.voice.cancel')}
+            className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+          >
+            <Trash2 className="h-5 w-5" />
+          </button>
+          <div className="flex flex-1 items-center gap-2.5 rounded-xl border border-destructive/30 bg-destructive/5 px-3.5 py-2.5">
+            <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
+            <span className="text-sm font-medium tabular-nums">{formatSeconds(recSeconds)}</span>
+            <span className="text-xs text-muted-foreground">{t('chat.voice.recording')}</span>
+          </div>
+          <Button
+            type="button"
+            size="icon"
+            onClick={() => stopRecording(false)}
+            title={t('chat.voice.send')}
+            className="h-[42px] w-[42px] shrink-0"
+          >
+            <SendHorizontal className="h-4 w-4" />
+          </Button>
+        </div>
+      ) : (
+        <form onSubmit={onSend} className="flex items-end gap-2 border-t border-border p-3">
+          <input ref={attachRef} type="file" className="hidden" onChange={onAttach} />
+
+          {/* Emoji picker */}
+          <div ref={emojiRef} className="relative">
+            <Button
+              type="button"
+              size="icon"
+              variant="secondary"
+              onClick={() => setEmojiOpen((o) => !o)}
+              title={t('chat.emoji')}
+              className={cn('h-[42px] w-[42px]', emojiOpen && 'text-primary')}
+            >
+              <Smile className="h-4 w-4" />
+            </Button>
+            {emojiOpen && (
+              <div className="absolute bottom-full left-0 z-30 mb-2 w-[288px] rounded-2xl border border-border bg-popover p-2 shadow-xl">
+                <div className="grid max-h-56 grid-cols-8 gap-0.5 overflow-y-auto">
+                  {COMPOSER_EMOJIS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => insertEmoji(emoji)}
+                      className="rounded-lg p-1 text-xl leading-none transition-transform hover:scale-125 hover:bg-accent"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <Button
+            type="button"
+            size="icon"
+            variant="secondary"
+            loading={uploading}
+            onClick={() => attachRef.current?.click()}
+            title={t('issues.attachments.add')}
+            className="h-[42px] w-[42px]"
+          >
+            {!uploading && <Upload className="h-4 w-4" />}
+          </Button>
+          <textarea
+            ref={textareaRef}
+            value={draft}
+            onChange={(e) => {
+              setDraft(e.target.value)
+              sendTyping(conversation.id)
+            }}
+            onKeyDown={onKeyDown}
+            rows={1}
+            placeholder={t('chat.messagePlaceholder')}
+            className="max-h-32 min-h-[42px] flex-1 resize-none rounded-xl border border-input bg-secondary/50 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-primary/60 focus:ring-2 focus:ring-primary/25"
+          />
+          {draft.trim() ? (
+            <Button type="submit" size="icon" loading={sending} className="h-[42px] w-[42px]">
+              <SendHorizontal className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              size="icon"
+              variant="secondary"
+              onClick={() => void startRecording()}
+              title={t('chat.voice.record')}
+              className="h-[42px] w-[42px]"
+            >
+              <Mic className="h-4 w-4" />
+            </Button>
+          )}
+        </form>
+      )}
     </>
   )
 }
@@ -748,7 +1146,6 @@ function MessageBubble({
   message: m,
   mine,
   showAuthor,
-  emojis,
   myId,
   editing,
   editDraft,
@@ -762,7 +1159,6 @@ function MessageBubble({
   message: Message
   mine: boolean
   showAuthor: boolean
-  emojis: string[]
   myId: string
   editing: boolean
   editDraft: string
@@ -777,6 +1173,10 @@ function MessageBubble({
   const [pickerOpen, setPickerOpen] = useState(false)
   const pickerRef = useClickOutside<HTMLDivElement>(pickerOpen, () => setPickerOpen(false))
 
+  const audio = messageAudio(m)
+  const image = messageImage(m)
+  const video = messageVideo(m)
+  const file = messageFile(m)
   const reactions = (m.reactions ?? []).filter((r) => (r.count ?? r.user_ids?.length ?? 0) > 0)
 
   return (
@@ -821,6 +1221,94 @@ function MessageBubble({
                 </button>
               </div>
             </div>
+          ) : image ? (
+            <a
+              href={image.url}
+              target="_blank"
+              rel="noreferrer"
+              className={cn(
+                'block overflow-hidden rounded-2xl',
+                mine ? 'rounded-br-md' : 'rounded-bl-md',
+              )}
+            >
+              <img
+                src={image.url}
+                alt={m.attachment_name ?? 'image'}
+                loading="lazy"
+                className="max-h-72 w-auto max-w-full object-cover"
+              />
+            </a>
+          ) : video ? (
+            <video
+              controls
+              preload="metadata"
+              src={video.url}
+              className={cn(
+                'max-h-72 max-w-full rounded-2xl',
+                mine ? 'rounded-br-md' : 'rounded-bl-md',
+              )}
+            />
+          ) : audio ? (
+            <div
+              className={cn(
+                'flex items-center gap-2 rounded-2xl px-2.5 py-2',
+                mine ? 'btn-gradient rounded-br-md' : 'rounded-bl-md bg-secondary',
+              )}
+            >
+              <span
+                className={cn(
+                  'flex h-8 w-8 shrink-0 items-center justify-center rounded-full',
+                  mine ? 'bg-white/20 text-primary-foreground' : 'bg-primary/15 text-primary',
+                )}
+              >
+                <Play className="h-4 w-4" />
+              </span>
+              <audio
+                controls
+                preload="metadata"
+                src={audio.url}
+                className="h-9 w-[200px] max-w-full"
+              />
+              {audio.duration != null && (
+                <span
+                  className={cn(
+                    'shrink-0 pr-1 text-[11px] tabular-nums',
+                    mine ? 'text-primary-foreground/80' : 'text-muted-foreground',
+                  )}
+                >
+                  {formatSeconds(audio.duration)}
+                </span>
+              )}
+            </div>
+          ) : file ? (
+            <a
+              href={file.url}
+              target="_blank"
+              rel="noreferrer"
+              className={cn(
+                'flex items-center gap-2.5 rounded-2xl px-3 py-2.5',
+                mine
+                  ? 'btn-gradient rounded-br-md text-primary-foreground'
+                  : 'rounded-bl-md bg-secondary text-foreground',
+              )}
+            >
+              <span
+                className={cn(
+                  'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
+                  mine ? 'bg-white/20' : 'bg-primary/15 text-primary',
+                )}
+              >
+                <Upload className="h-4 w-4" />
+              </span>
+              <span className="min-w-0">
+                <span className="block max-w-[200px] truncate text-sm font-medium">
+                  {file.name}
+                </span>
+                <span className={cn('text-[11px]', mine ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+                  {t('issues.attachments.download')}
+                </span>
+              </span>
+            </a>
           ) : (
             <div
               className={cn(
@@ -876,14 +1364,14 @@ function MessageBubble({
               >
                 <SmilePlus className="h-4 w-4" />
               </button>
-              {pickerOpen && emojis.length > 0 && (
+              {pickerOpen && (
                 <div
                   className={cn(
                     'absolute bottom-full z-30 mb-1 flex gap-0.5 rounded-full border border-border bg-popover p-1 shadow-xl',
                     mine ? 'right-0' : 'left-0',
                   )}
                 >
-                  {emojis.map((emoji) => (
+                  {REACTION_EMOJIS.map((emoji) => (
                     <button
                       key={emoji}
                       type="button"

@@ -18,8 +18,11 @@ const normalizedApiUrl = rawApiUrl.endsWith('/api/v1')
 // CORS. In production the app talks to the API directly (needs backend CORS).
 const baseURL = import.meta.env.DEV ? '/api/v1' : normalizedApiUrl
 
+// A generous timeout so a genuinely slow (cold-starting) backend still works,
+// but a dead/hung connection fails instead of spinning forever.
 export const api = axios.create({
   baseURL,
+  timeout: 45_000,
   headers: { 'Content-Type': 'application/json' },
 })
 

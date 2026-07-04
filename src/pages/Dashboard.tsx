@@ -176,28 +176,37 @@ export default function Dashboard() {
         </Button>
       </div>
 
-      {/* Stat cards */}
+      {/* Stat cards — real, live counts across the current workspace's projects */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {statCards.map(({ key, value, icon: Icon, tint }) => (
-          <Card key={key} hover className="p-5">
-            <div className="flex items-start justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                {t(`auth.dashboard.stats.${key}`)}
-              </span>
-              <span className={cn('flex h-8 w-8 items-center justify-center rounded-lg', tint)}>
-                <Icon className="h-4 w-4" />
-              </span>
-            </div>
-            {busy ? (
-              <Skeleton className="mt-4 h-9 w-16" />
-            ) : (
-              <p className="mt-3 text-3xl font-bold tabular-nums">{value}</p>
-            )}
-            <p className="mt-1 text-xs text-muted-foreground">
-              {t(`dashboard.hints.${key}`)}
-            </p>
-          </Card>
-        ))}
+        {statCards.map(({ key, value, icon: Icon, tint }) => {
+          const content = (
+            <Card hover className="h-full p-5">
+              <div className="flex items-start justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  {t(`auth.dashboard.stats.${key}`)}
+                </span>
+                <span className={cn('flex h-8 w-8 items-center justify-center rounded-lg', tint)}>
+                  <Icon className="h-4 w-4" />
+                </span>
+              </div>
+              {busy ? (
+                <Skeleton className="mt-4 h-9 w-16" />
+              ) : (
+                <p className="mt-3 text-3xl font-bold tabular-nums">{value}</p>
+              )}
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t(`dashboard.hints.${key}`)}
+              </p>
+            </Card>
+          )
+          return primary ? (
+            <Link key={key} to={`/${primary.slug}/projects`}>
+              {content}
+            </Link>
+          ) : (
+            <div key={key}>{content}</div>
+          )
+        })}
       </div>
 
       {list.length === 0 && !isLoading ? (

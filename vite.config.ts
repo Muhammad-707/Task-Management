@@ -30,7 +30,16 @@ export default defineConfig(({ mode }) => {
     server: apiOrigin
       ? {
           proxy: {
+            // API (+ WebSocket upgrade for chat/calls).
             '/api/v1': {
+              target: apiOrigin,
+              changeOrigin: true,
+              secure: true,
+              ws: true,
+            },
+            // Chat attachment storage (uploads/downloads) lives outside /api/v1;
+            // proxy it too so the browser stays same-origin (no CORS in dev).
+            '/internal': {
               target: apiOrigin,
               changeOrigin: true,
               secure: true,

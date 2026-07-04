@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Layers, Plus, RefreshCw, Search, Settings, Tag, User } from 'lucide-react'
 import { useGetStatesQuery } from '@/features/states/statesApi'
@@ -12,15 +12,17 @@ import {
 import type { Issue, Priority } from '@/features/issues/types'
 import { PRIORITY_BADGE, PRIORITY_ORDER } from '@/features/issues/priority'
 import { Loading } from '@/components/common/Loading'
+import { BackButton } from '@/components/common/BackButton'
+import { IssueDrawer } from '@/components/issues/IssueDrawer'
 import { Button, Card, Input, Select } from '@/components/ui'
 import { cn } from '@/lib/utils'
 
 export default function ProjectBoard() {
   const { t } = useTranslation()
-  const navigate = useNavigate()
   const { workspaceSlug, projectId } = useParams()
   const slug = workspaceSlug ?? ''
   const pid = projectId ?? ''
+  const [openIssueId, setOpenIssueId] = useState<string | null>(null)
 
   const { data: states } = useGetStatesQuery(
     { workspaceSlug: slug, projectId: pid },
@@ -113,6 +115,7 @@ export default function ProjectBoard() {
 
   return (
     <div className="space-y-6">
+      <BackButton to={`/${slug}/projects`} label={t('projects.title')} className="-ml-2" />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold tracking-tight">{t('issues.title')}</h1>
         <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -250,7 +253,7 @@ export default function ProjectBoard() {
                         setDraggingId(null)
                         setDragOverState(null)
                       }}
-                      onClick={() => navigate(`/${slug}/projects/${pid}/issues/${issue.id}`)}
+                      onClick={() => setOpenIssueId(issue.id)}
                       className={cn('cursor-pointer', draggingId === issue.id && 'opacity-40')}
                     >
                       <Card hover className="p-3">
@@ -299,6 +302,18 @@ export default function ProjectBoard() {
         <Button variant="outline" onClick={() => void loadPage(nextCursor)} loading={isFetching}>
           {t('issues.loadMore')}
         </Button>
+      )}
+
+      {openIssueId && (
+        <IssueDrawer
+          slug={slug}
+          projectId={pid}
+          issueId={openIssueId}
+          onClose={() => {
+            setOpenIssueId(null)
+            void loadPage()
+          }}
+        />
       )}
     </div>
   )

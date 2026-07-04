@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
+import { BackButton } from '@/components/common/BackButton'
 import { useGetStatesQuery } from '@/features/states/statesApi'
 import { useGetLabelsQuery } from '@/features/labels/labelsApi'
 import { useGetProjectMembersQuery } from '@/features/projects/projectsApi'
@@ -25,14 +26,27 @@ import { RelationsSection } from '@/features/relations/RelationsSection'
 import { ActivitySection } from '@/features/activity/ActivitySection'
 import { Loading } from '@/components/common/Loading'
 import { Button, Card, Field, Input, Select, Textarea } from '@/components/ui'
+import { cn } from '@/lib/utils'
 
-export default function IssueDetails() {
+export default function IssueDetails({
+  slugProp,
+  pidProp,
+  iidProp,
+  onClose,
+  embedded = false,
+}: {
+  slugProp?: string
+  pidProp?: string
+  iidProp?: string
+  onClose?: () => void
+  embedded?: boolean
+} = {}) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { workspaceSlug, projectId, issueId } = useParams()
-  const slug = workspaceSlug ?? ''
-  const pid = projectId ?? ''
-  const iid = issueId ?? ''
+  const params = useParams()
+  const slug = slugProp ?? params.workspaceSlug ?? ''
+  const pid = pidProp ?? params.projectId ?? ''
+  const iid = iidProp ?? params.issueId ?? ''
   const ids = { workspaceSlug: slug, projectId: pid, issueId: iid }
   const canQuery = Boolean(slug && pid && iid)
 
@@ -111,7 +125,8 @@ export default function IssueDetails() {
   const onDelete = async () => {
     try {
       await deleteIssue(ids).unwrap()
-      navigate(`/${slug}/projects/${pid}`, { replace: true })
+      if (onClose) onClose()
+      else navigate(`/${slug}/projects/${pid}`, { replace: true })
     } catch {
       // handled by global toast
     }
@@ -133,15 +148,11 @@ export default function IssueDetails() {
 
   return (
     <div className="space-y-6">
-      <Link
-        to={`/${slug}/projects/${pid}`}
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        {t('issues.title')}
-      </Link>
+      {!embedded && (
+        <BackButton to={`/${slug}/projects/${pid}`} label={t('issues.title')} className="-ml-2" />
+      )}
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div className={cn('grid gap-6', !embedded && 'lg:grid-cols-[1fr_320px]')}>
         {/* Main column */}
         <div className="space-y-8">
           <Card className="p-6">

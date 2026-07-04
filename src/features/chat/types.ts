@@ -40,6 +40,8 @@ export interface MessageReaction {
   reacted?: boolean
 }
 
+export type MessageKind = 'text' | 'image' | 'video' | 'audio' | 'voice' | 'file'
+
 export interface Message {
   id: string
   conversation_id: string
@@ -49,6 +51,11 @@ export interface Message {
   sender: ChatUser
   edited_at?: string | null
   reactions?: MessageReaction[]
+  kind?: MessageKind
+  attachment_url?: string | null
+  attachment_name?: string | null
+  attachment_mime?: string | null
+  attachment_duration?: number | null
   // Chat attachments (presigned) may ride along on a message.
   attachments?: {
     id: string

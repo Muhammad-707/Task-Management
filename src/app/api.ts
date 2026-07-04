@@ -6,6 +6,10 @@ import { axiosBaseQuery } from './baseQuery'
 export const baseApi = createApi({
   reducerPath: 'api',
   baseQuery: axiosBaseQuery(),
+  // Keep cached data around for 5 minutes so navigating between pages reuses it
+  // instead of re-hitting the (slow, free-tier) backend on every mount.
+  keepUnusedDataFor: 300,
+  refetchOnReconnect: true,
   tagTypes: [
     'Auth',
     'Workspace',
